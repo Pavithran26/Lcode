@@ -1,0 +1,19 @@
+//386. Lexicographical Numbers
+class Solution {
+    public List<Integer> lexicalOrder(int n) {
+        ArrayList<Integer> ans = new ArrayList<>();
+        for(int i=1;i<=9;i++){
+            dfs(n, i, ans);
+        }
+        return ans;
+    }
+
+    public static void dfs(int n, int i, ArrayList<Integer> ans){
+        if(i>n) return;
+        ans.add(i);
+        for(int j=0;j<=9;j++){
+            int next=i*10 + j;    //after 1 it will be 10, then 100 and so on... till we return and explore next subtree
+            dfs(n, next, ans);
+        }
+    }
+}
