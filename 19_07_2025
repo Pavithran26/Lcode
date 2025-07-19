@@ -1,0 +1,19 @@
+//1233. Remove Sub-Folders from the Filesystem
+class Solution {
+public:
+    vector<string> removeSubfolders(vector<string>& folder) {
+        vector<string> ans;
+        sort(folder.begin(),folder.end());
+        string curr=folder.at(0);
+        ans.push_back(curr);
+        for(int i=1;i<folder.size();i++)
+        {
+            if(folder.at(i).find(curr+"/")==string::npos || folder.at(i).find(curr+"/")!=0)
+            {
+                curr=folder.at(i);
+                ans.push_back(curr);
+            }
+        }
+        return ans;
+    }
+};
