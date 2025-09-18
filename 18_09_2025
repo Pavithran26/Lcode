@@ -1,0 +1,49 @@
+//3408. Design Task Manager
+class TaskManager {
+public:
+   // taskid->{userid,priority};
+    unordered_map<int,pair<int,int>>mpp;
+    
+   // {priority,taskid}
+    set<pair<int,int>>st;
+    TaskManager(vector<vector<int>>& tasks) {
+        //task - userid,taskid,priority
+        for(auto it:tasks){
+            mpp[it[1]]={it[0],it[2]};
+            st.insert({it[2],it[1]});
+        }
+    }
+    
+    void add(int userId, int taskId, int priority) {
+        mpp[taskId]={userId,priority};
+        st.insert({priority,taskId});
+    }
+    
+    void edit(int taskId, int newPriority) {
+        pair<int,int>p=mpp[taskId];
+        p={p.second,taskId};
+        auto it=st.find(p);
+        st.erase(it);
+        st.insert({newPriority,taskId});
+        mpp[taskId]={mpp[taskId].first,newPriority};
+    }
+    
+    void rmv(int taskId) {
+        pair<int,int>p=mpp[taskId];
+        p={p.second,taskId};
+        auto it=st.find(p);
+        st.erase(p);
+        mpp.erase(taskId);
+    }
+    
+    int execTop() {
+        if(mpp.size()==0)return -1;
+        auto it=st.end();
+        it--;
+        pair<int,int>p=*it;
+        int ans=mpp[p.second].first;
+        mpp.erase(p.second);
+        st.erase(it);
+        return ans;
+    }
+};
