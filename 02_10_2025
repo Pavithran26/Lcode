@@ -1,0 +1,13 @@
+//3100. Water Bottles II
+public class Solution {
+    public int maxBottlesDrunk(int numBottles, int numExchange) {
+        int emptyBottles = numBottles;
+        int bottleDrinks = numBottles;
+        while (numExchange <= emptyBottles) {
+            bottleDrinks += 1;
+            emptyBottles = 1 + (emptyBottles - numExchange);
+            numExchange++;
+        }
+        return bottleDrinks;
+    }
+}
