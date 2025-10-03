@@ -1,0 +1,77 @@
+//407. Trapping Rain Water II
+import java.util.PriorityQueue;
+
+class Solution {
+    
+    // A class to represent each cell in the height map
+    private static class Cell {
+        int row;
+        int col;
+        int height;
+
+        public Cell(int row, int col, int height) {
+            this.row = row;
+            this.col = col;
+            this.height = height;
+        }
+    }
+    
+    public int trapRainWater(int[][] heightMap) {
+        if (heightMap == null || heightMap.length == 0 || heightMap[0].length == 0) {
+            return 0;
+        }
+
+        int m = heightMap.length;
+        int n = heightMap[0].length;
+
+        // Priority queue to store cells, prioritized by their height
+        PriorityQueue<Cell> minHeap = new PriorityQueue<>((a, b) -> a.height - b.height);
+        
+        // Visited matrix to keep track of processed cells
+        boolean[][] visited = new boolean[m][n];
+        
+        // Total water trapped
+        int totalWater = 0;
+
+        // Add all boundary cells to the min-heap
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i == 0 || i == m - 1 || j == 0 || j == n - 1) {
+                    minHeap.add(new Cell(i, j, heightMap[i][j]));
+                    visited[i][j] = true;
+                }
+            }
+        }
+
+        // Directions for exploring neighbors
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        // Process cells from the min-heap
+        while (!minHeap.isEmpty()) {
+            Cell current = minHeap.poll();
+            int height = current.height;
+            int r = current.row;
+            int c = current.col;
+
+            for (int[] dir : directions) {
+                int nr = r + dir[0];
+                int nc = c + dir[1];
+
+                // Check if the neighbor is within bounds and hasn't been visited
+                if (nr >= 0 && nr < m && nc >= 0 && nc < n && !visited[nr][nc]) {
+                    visited[nr][nc] = true;
+                    
+                    // If the neighbor is lower than the current effective boundary height, trap water
+                    int waterTrappedAtNeighbor = Math.max(0, height - heightMap[nr][nc]);
+                    totalWater += waterTrappedAtNeighbor;
+                    
+                    // Add the neighbor to the heap with the new, higher effective wall height
+                    int newHeight = Math.max(height, heightMap[nr][nc]);
+                    minHeap.add(new Cell(nr, nc, newHeight));
+                }
+            }
+        }
+        
+        return totalWater;
+    }
+}
