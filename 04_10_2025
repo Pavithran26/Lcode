@@ -1,0 +1,38 @@
+//11. Container With Most Water
+public class Solution {
+    public int maxArea(int[] height) {
+        int left = 0;
+        int right = height.length - 1;
+        int maxArea = 0;
+
+        while (left < right) {
+            int currentArea = (right - left) * Math.min(height[left], height[right]);
+            maxArea = Math.max(maxArea, currentArea);
+
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+
+        return maxArea;
+    }
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+
+        // Test cases
+        int[] height1 = {1, 8, 6, 2, 5, 4, 8, 3, 7};
+        System.out.println("Example 1 Output: " + solution.maxArea(height1));
+
+        int[] height2 = {1, 1};
+        System.out.println("Example 2 Output: " + solution.maxArea(height2));
+
+        int[] height3 = {4, 3, 2, 1, 4};
+        System.out.println("Example 3 Output: " + solution.maxArea(height3));
+
+        int[] height4 = {1, 2, 1};
+        System.out.println("Example 4 Output: " + solution.maxArea(height4));
+    }
+}
