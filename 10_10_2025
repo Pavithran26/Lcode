@@ -1,0 +1,36 @@
+//3147. Taking Maximum Energy From the Mystic Dungeon
+
+import java.util.Arrays;
+
+class Solution {
+    /**
+     * Finds the maximum possible energy by starting at any magician and taking
+     * k-step jumps.
+     *
+     * @param energy The array of energy values for each magician.
+     * @param k      The jump size.
+     * @return The maximum possible energy gain.
+     */
+    public int maximumEnergy(int[] energy, int k) {
+        int n = energy.length;
+
+        // Iterate backwards and update the energy array in-place.
+        // The loop starts at the last possible index where a k-step jump is
+        // still possible, which is (n - 1 - k).
+        for (int i = n - 1 - k; i >= 0; --i) {
+            energy[i] += energy[i + k];
+        }
+
+        // The maximum energy is the largest value found in the updated array.
+        // After the backward pass, energy[i] stores the total energy for a
+        // path starting at i.
+        int maxEnergy = Integer.MIN_VALUE;
+        for (int i = 0; i < n; i++) {
+            if (energy[i] > maxEnergy) {
+                maxEnergy = energy[i];
+            }
+        }
+        
+        return maxEnergy;
+    }
+}
