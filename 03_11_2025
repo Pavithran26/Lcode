@@ -1,0 +1,32 @@
+//1578. Minimum Time to Make Rope Colorful
+class Solution {
+    public int minCost(String colors, int[] neededTime) {
+        int totalCost = 0;
+        int n = neededTime.length;
+      
+        // Process groups of consecutive balloons with the same color
+        for (int groupStart = 0, groupEnd = 0; groupStart < n; groupStart = groupEnd) {
+            groupEnd = groupStart;
+            int groupSum = 0;
+            int maxTimeInGroup = 0;
+          
+            // Find all consecutive balloons with the same color as groupStart
+            while (groupEnd < n && colors.charAt(groupEnd) == colors.charAt(groupStart)) {
+                // Accumulate total time for this group
+                groupSum += neededTime[groupEnd];
+                // Track the maximum time in this group
+                maxTimeInGroup = Math.max(maxTimeInGroup, neededTime[groupEnd]);
+                groupEnd++;
+            }
+          
+            // If we have more than one balloon of the same color
+            if (groupEnd - groupStart > 1) {
+                // Remove all except the one with maximum time
+                // Cost = sum of all times - maximum time
+                totalCost += groupSum - maxTimeInGroup;
+            }
+        }
+      
+        return totalCost;
+    }
+}
