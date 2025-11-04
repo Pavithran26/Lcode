@@ -1,0 +1,121 @@
+//3318. Find X-Sum of All K-Long Subarrays I
+class Solution {
+    // TreeSet to maintain top x elements (sorted by frequency desc, then value desc)
+    private TreeSet<int[]> topElements = new TreeSet<>((a, b) -> 
+        a[0] == b[0] ? a[1] - b[1] : a[0] - b[0]);
+  
+    // TreeSet to maintain remaining elements (same comparator)
+    private TreeSet<int[]> remainingElements = new TreeSet<>(topElements.comparator());
+  
+    // Map to track frequency count of each number
+    private Map<Integer, Integer> frequencyMap = new HashMap<>();
+  
+    // Current sum of top x elements
+    private int currentSum;
+
+    /**
+     * Finds the x-sum for each k-length sliding window in the array.
+     * X-sum is the sum of (value * frequency) for the x most frequent elements.
+     * 
+     * @param nums The input array
+     * @param k The window size
+     * @param x The number of top frequent elements to consider
+     * @return Array containing x-sum for each window
+     */
+    public int[] findXSum(int[] nums, int k, int x) {
+        int n = nums.length;
+        int[] result = new int[n - k + 1];
+      
+        for (int i = 0; i < n; ++i) {
+            int currentValue = nums[i];
+          
+            // Remove old frequency entry before updating
+            removeFromSets(currentValue);
+          
+            // Update frequency count
+            frequencyMap.merge(currentValue, 1, Integer::sum);
+          
+            // Add back with new frequency
+            addToSets(currentValue);
+          
+            // Calculate window starting index
+            int windowStart = i - k + 1;
+          
+            // Skip if window is not complete yet
+            if (windowStart < 0) {
+                continue;
+            }
+          
+            // Move elements from remaining to top if needed
+            while (!remainingElements.isEmpty() && topElements.size() < x) {
+                int[] element = remainingElements.pollLast();
+                currentSum += element[0] * element[1];  // frequency * value
+                topElements.add(element);
+            }
+          
+            // Move excess elements from top to remaining
+            while (topElements.size() > x) {
+                int[] element = topElements.pollFirst();
+                currentSum -= element[0] * element[1];  // frequency * value
+                remainingElements.add(element);
+            }
+          
+            // Store the x-sum for current window
+            result[windowStart] = currentSum;
+          
+            // Remove the element going out of window
+            removeFromSets(nums[windowStart]);
+            frequencyMap.merge(nums[windowStart], -1, Integer::sum);
+            addToSets(nums[windowStart]);
+        }
+      
+        return result;
+    }
+
+    /**
+     * Removes an element's frequency entry from the appropriate set.
+     * 
+     * @param value The value to remove
+     */
+    private void removeFromSets(int value) {
+        // Skip if value doesn't exist in frequency map
+        if (!frequencyMap.containsKey(value)) {
+            return;
+        }
+      
+        // Create array with [frequency, value]
+        int[] element = new int[] {frequencyMap.get(value), value};
+      
+        // Remove from appropriate set
+        if (topElements.contains(element)) {
+            topElements.remove(element);
+            currentSum -= element[0] * element[1];  // frequency * value
+        } else {
+            remainingElements.remove(element);
+        }
+    }
+
+    /**
+     * Adds an element's frequency entry to the appropriate set.
+     * 
+     * @param value The value to add
+     */
+    private void addToSets(int value) {
+        // Skip if value doesn't exist in frequency map
+        if (!frequencyMap.containsKey(value)) {
+            return;
+        }
+      
+        // Create array with [frequency, value]
+        int[] element = new int[] {frequencyMap.get(value), value};
+      
+        // Add to top set if it's better than the minimum in top set
+        if (!topElements.isEmpty() && 
+            topElements.comparator().compare(topElements.first(), element) < 0) {
+            topElements.add(element);
+            currentSum += element[0] * element[1];  // frequency * value
+        } else {
+            remainingElements.add(element);
+        }
+    }
+}
