@@ -1,0 +1,111 @@
+//3321. Find X-Sum of All K-Long Subarrays II
+class Solution {
+    // TreeSet to maintain top X frequent elements (sorted by frequency desc, then value desc)
+    private TreeSet<int[]> topElements = new TreeSet<>((a, b) -> 
+        a[0] == b[0] ? a[1] - b[1] : a[0] - b[0]);
+  
+    // TreeSet to maintain remaining elements not in top X
+    private TreeSet<int[]> remainingElements = new TreeSet<>(topElements.comparator());
+  
+    // Map to track frequency count of each number in current window
+    private Map<Integer, Integer> frequencyMap = new HashMap<>();
+  
+    // Running sum of (value * frequency) for top X elements
+    private long currentSum;
+
+    public long[] findXSum(int[] nums, int k, int x) {
+        int n = nums.length;
+        long[] result = new long[n - k + 1];
+      
+        for (int i = 0; i < n; i++) {
+            int currentValue = nums[i];
+          
+            // Remove old frequency entry before updating
+            removeFromSets(currentValue);
+          
+            // Update frequency count for current value
+            frequencyMap.merge(currentValue, 1, Integer::sum);
+          
+            // Add back with new frequency
+            addToSets(currentValue);
+          
+            // Check if we have a complete window of size k
+            int windowStartIndex = i - k + 1;
+            if (windowStartIndex < 0) {
+                continue;
+            }
+          
+            // Balance the sets to ensure topElements has exactly x elements (if possible)
+            // Move elements from remainingElements to topElements if needed
+            while (!remainingElements.isEmpty() && topElements.size() < x) {
+                int[] element = remainingElements.pollLast();
+                currentSum += 1L * element[0] * element[1];  // frequency * value
+                topElements.add(element);
+            }
+          
+            // Move excess elements from topElements to remainingElements
+            while (topElements.size() > x) {
+                int[] element = topElements.pollFirst();
+                currentSum -= 1L * element[0] * element[1];  // frequency * value
+                remainingElements.add(element);
+            }
+          
+            // Store the sum for current window
+            result[windowStartIndex] = currentSum;
+          
+            // Remove the element going out of window
+            removeFromSets(nums[windowStartIndex]);
+          
+            // Decrease frequency count for element leaving the window
+            frequencyMap.merge(nums[windowStartIndex], -1, Integer::sum);
+          
+            // Add back with updated frequency (or not at all if frequency becomes 0)
+            addToSets(nums[windowStartIndex]);
+        }
+      
+        return result;
+    }
+
+    /**
+     * Removes an element from either topElements or remainingElements set
+     * based on its current frequency
+     */
+    private void removeFromSets(int value) {
+        if (!frequencyMap.containsKey(value)) {
+            return;
+        }
+      
+        // Create pair [frequency, value] to search in sets
+        int[] elementPair = new int[] {frequencyMap.get(value), value};
+      
+        // Remove from appropriate set and update sum if needed
+        if (topElements.contains(elementPair)) {
+            topElements.remove(elementPair);
+            currentSum -= 1L * elementPair[0] * elementPair[1];  // frequency * value
+        } else {
+            remainingElements.remove(elementPair);
+        }
+    }
+
+    /**
+     * Adds an element to either topElements or remainingElements set
+     * based on comparison with current minimum in topElements
+     */
+    private void addToSets(int value) {
+        if (!frequencyMap.containsKey(value)) {
+            return;
+        }
+      
+        // Create pair [frequency, value] for the element
+        int[] elementPair = new int[] {frequencyMap.get(value), value};
+      
+        // Add to topElements if it's better than the minimum element there
+        if (!topElements.isEmpty() && 
+            topElements.comparator().compare(topElements.first(), elementPair) < 0) {
+            topElements.add(elementPair);
+            currentSum += 1L * elementPair[0] * elementPair[1];  // frequency * value
+        } else {
+            remainingElements.add(elementPair);
+        }
+    }
+}
