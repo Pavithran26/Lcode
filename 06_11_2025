@@ -1,0 +1,106 @@
+//3607. Power Grid Maintenance
+import java.util.*;
+
+class Solution {
+    
+    static class DSU {
+        int[] parent;
+        Map<Integer, TreeSet<Integer>> operationalStations;
+        boolean[] isOnline;
+
+        public DSU(int c) {
+            parent = new int[c + 1];
+            operationalStations = new HashMap<>();
+            isOnline = new boolean[c + 1];
+            for (int i = 1; i <= c; i++) {
+                parent[i] = i;
+                operationalStations.put(i, new TreeSet<>());
+                operationalStations.get(i).add(i);
+                isOnline[i] = true;
+            }
+        }
+
+        public int find(int i) {
+            if (parent[i] == i)
+                return i;
+            return parent[i] = find(parent[i]);
+        }
+
+        public void union(int i, int j) {
+            int rootI = find(i);
+            int rootJ = find(j);
+            if (rootI != rootJ) {
+                if (operationalStations.get(rootI).size() < operationalStations.get(rootJ).size()) {
+                    int temp = rootI;
+                    rootI = rootJ;
+                    rootJ = temp;
+                }
+                parent[rootJ] = rootI;
+                if (operationalStations.containsKey(rootJ)) {
+                    operationalStations.get(rootI).addAll(operationalStations.get(rootJ));
+                    operationalStations.remove(rootJ);
+                }
+            }
+        }
+
+        public int getMinOperational(int stationId) {
+            int root = find(stationId);
+            TreeSet<Integer> onlineSet = operationalStations.get(root);
+            if (onlineSet == null || onlineSet.isEmpty()) {
+                return -1;
+            }
+            return onlineSet.first();
+        }
+
+        public void setOffline(int stationId) {
+            if (!isOnline[stationId]) return;
+            isOnline[stationId] = false;
+            int root = find(stationId);
+            TreeSet<Integer> onlineSet = operationalStations.get(root);
+            if (onlineSet != null) {
+                onlineSet.remove(stationId);
+            }
+        }
+
+        public boolean isOnline(int stationId) {
+            return isOnline[stationId];
+        }
+    }
+
+    /**
+     * This method is renamed to processQueries to match the external driver's expectations.
+     */
+    public int[] processQueries(int c, int[][] connections, int[][] queries) {
+        DSU dsu = new DSU(c);
+        
+        // Build initial connectivity
+        for (int[] conn : connections) {
+            dsu.union(conn[0], conn[1]); // Corrected access to connection array
+        }
+
+        List<Integer> results = new ArrayList<>();
+        for (int[] query : queries) {
+            int type = query[0]; // Corrected access to query array elements
+            int stationId = query[1];
+
+            if (type == 1) {
+                // Query 1: Maintenance check
+                if (dsu.isOnline(stationId)) {
+                    results.add(stationId);
+                } else {
+                    results.add(dsu.getMinOperational(stationId));
+                }
+            } else {
+                // Query 2: Station goes offline
+                dsu.setOffline(stationId);
+            }
+        }
+
+        // Convert List<Integer> to int[]
+        int[] resultArray = new int[results.size()];
+        for (int i = 0; i < results.size(); i++) {
+            resultArray[i] = results.get(i);
+        }
+        return resultArray;
+    }
+}
