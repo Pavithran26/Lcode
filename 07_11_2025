@@ -1,0 +1,83 @@
+//2528. Maximize the Minimum Powered City
+class Solution {
+    private long[] prefixSum;           // Prefix sum array for power stations
+    private long[] differenceArray;     // Difference array for range updates
+    private int cityCount;              // Total number of cities
+  
+    public long maxPower(int[] stations, int r, int k) {
+        cityCount = stations.length;
+        differenceArray = new long[cityCount + 1];
+        prefixSum = new long[cityCount + 1];
+      
+        // Convert initial stations to difference array for range coverage
+        // Each station at position i covers cities from [i-r, i+r]
+        for (int i = 0; i < cityCount; ++i) {
+            int rangeStart = Math.max(0, i - r);
+            int rangeEnd = Math.min(i + r, cityCount - 1);
+            differenceArray[rangeStart] += stations[i];
+            differenceArray[rangeEnd + 1] -= stations[i];
+        }
+      
+        // Build prefix sum from difference array to get actual power at each city
+        prefixSum[0] = differenceArray[0];
+        for (int i = 1; i < cityCount + 1; ++i) {
+            prefixSum[i] = prefixSum[i - 1] + differenceArray[i];
+        }
+      
+        // Binary search for the maximum minimum power
+        long left = 0;
+        long right = 1L << 40;  // Upper bound for binary search
+      
+        while (left < right) {
+            long mid = (left + right + 1) >>> 1;  // Avoid overflow with unsigned right shift
+            if (canAchieveMinPower(mid, r, k)) {
+                left = mid;  // Can achieve this minimum, try higher
+            } else {
+                right = mid - 1;  // Cannot achieve, try lower
+            }
+        }
+      
+        return left;
+    }
+  
+    /**
+     * Check if we can achieve minimum power of targetMinPower for all cities
+     * @param targetMinPower The target minimum power for all cities
+     * @param range The range that each station can cover
+     * @param additionalStations The number of additional stations we can build
+     * @return true if achievable, false otherwise
+     */
+    private boolean canAchieveMinPower(long targetMinPower, int range, int additionalStations) {
+        // Reset difference array for tracking additional stations
+        Arrays.fill(differenceArray, 0);
+        long additionalPower = 0;  // Running sum of additional power from new stations
+      
+        // Greedily place stations from left to right
+        for (int i = 0; i < cityCount; ++i) {
+            additionalPower += differenceArray[i];
+            long currentPower = prefixSum[i] + additionalPower;
+            long powerDeficit = targetMinPower - currentPower;
+          
+            if (powerDeficit > 0) {
+                // Need to add stations to meet the target
+                if (additionalStations < powerDeficit) {
+                    return false;  // Not enough stations available
+                }
+              
+                additionalStations -= powerDeficit;
+              
+                // Place new stations as far right as possible while still covering city i
+                int optimalPosition = Math.min(i + range, cityCount - 1);
+                int coverageStart = Math.max(0, optimalPosition - range);
+                int coverageEnd = Math.min(optimalPosition + range, cityCount - 1);
+              
+                // Update difference array for the new stations' coverage
+                differenceArray[coverageStart] += powerDeficit;
+                differenceArray[coverageEnd + 1] -= powerDeficit;
+                additionalPower += powerDeficit;
+            }
+        }
+      
+        return true;
+    }
+}
