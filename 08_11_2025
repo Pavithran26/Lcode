@@ -1,0 +1,15 @@
+//1611. Minimum One Bit Operations to Make Integers Zero
+public class Solution {
+    public int minimumOneBitOperations(int n) {
+        if (n == 0) {
+            return 0;
+        }
+
+        int k = 1;
+        while ((k << 1) <= n) {
+            k <<= 1;
+        }
+
+        return (k << 1) - 1 - minimumOneBitOperations(k ^ n);
+    }
+}
