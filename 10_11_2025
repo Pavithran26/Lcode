@@ -1,0 +1,31 @@
+//Stock Buy and Sell with Cooldown
+class Solution {
+    public int maxProfit(int arr[]) {
+        int n = arr.length;
+        if (n <= 1) return 0;
+        
+        // DP arrays to track maximum profit in each state
+        int[] hold = new int[n];  // Maximum profit when holding a stock
+        int[] sold = new int[n];  // Maximum profit just after selling
+        int[] rest = new int[n];  // Maximum profit during cooldown/rest
+        
+        // Initialize
+        hold[0] = -arr[0];  // Buy on day 0
+        sold[0] = 0;        // Cannot sell on day 0
+        rest[0] = 0;        // No action on day 0
+        
+        for (int i = 1; i < n; i++) {
+            // Hold: either continue holding or buy today (from rest state)
+            hold[i] = Math.max(hold[i-1], rest[i-1] - arr[i]);
+            
+            // Sold: sell the stock we were holding
+            sold[i] = hold[i-1] + arr[i];
+            
+            // Rest: either continue resting or come from cooldown after selling
+            rest[i] = Math.max(rest[i-1], sold[i-1]);
+        }
+        
+        // Maximum profit will be either in sold or rest state on last day
+        return Math.max(sold[n-1], rest[n-1]);
+    }
+}
