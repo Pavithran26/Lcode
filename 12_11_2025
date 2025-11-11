@@ -1,0 +1,62 @@
+//474. Ones and Zeroes
+class Solution {
+    /**
+     * Find the maximum number of strings that can be formed with given m 0s and n 1s
+     * This is a 0/1 knapsack problem with two constraints (number of 0s and 1s)
+     * 
+     * @param strs Array of binary strings
+     * @param m Maximum number of 0s available
+     * @param n Maximum number of 1s available
+     * @return Maximum number of strings that can be formed
+     */
+    public int findMaxForm(String[] strs, int m, int n) {
+        int stringCount = strs.length;
+      
+        // dp[i][j][k] represents the maximum number of strings that can be formed
+        // using first i strings with at most j zeros and k ones
+        int[][][] dp = new int[stringCount + 1][m + 1][n + 1];
+      
+        // Iterate through each string
+        for (int i = 1; i <= stringCount; i++) {
+            // Count zeros and ones in current string
+            int[] zerosAndOnes = count(strs[i - 1]);
+            int zeros = zerosAndOnes[0];
+            int ones = zerosAndOnes[1];
+          
+            // Iterate through all possible combinations of zeros and ones
+            for (int j = 0; j <= m; j++) {
+                for (int k = 0; k <= n; k++) {
+                    // Option 1: Don't include current string
+                    dp[i][j][k] = dp[i - 1][j][k];
+                  
+                    // Option 2: Include current string if we have enough zeros and ones
+                    if (j >= zeros && k >= ones) {
+                        dp[i][j][k] = Math.max(
+                            dp[i][j][k], 
+                            dp[i - 1][j - zeros][k - ones] + 1
+                        );
+                    }
+                }
+            }
+        }
+      
+        return dp[stringCount][m][n];
+    }
+
+    /**
+     * Count the number of 0s and 1s in a binary string
+     * 
+     * @param s Binary string containing only '0' and '1'
+     * @return Array where index 0 contains count of '0's and index 1 contains count of '1's
+     */
+    private int[] count(String s) {
+        int[] zerosAndOnes = new int[2];
+      
+        for (int i = 0; i < s.length(); i++) {
+            // Convert character to digit (0 or 1) and increment corresponding counter
+            zerosAndOnes[s.charAt(i) - '0']++;
+        }
+      
+        return zerosAndOnes;
+    }
+}
