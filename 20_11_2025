@@ -1,0 +1,54 @@
+//757. Set Intersection Size At Least Two
+import java.util.Arrays;
+import java.util.Comparator;
+
+public class Solution {
+    /**
+     * Finds the minimum size of a set S such that for every interval in the input, 
+     * the intersection of S and that interval has a size of at least two.
+     *
+     * @param intervals an array of integer intervals [start, end]
+     * @return the minimum size of the required set S
+     */
+    public int intersectionSizeTwo(int[][] intervals) {
+        // 1. Sort intervals by end points in ascending order. 
+        // If end points are the same, sort by start points in descending order.
+        Arrays.sort(intervals, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] a, int[] b) {
+                if (a[1] != b[1]) {
+                    return Integer.compare(a[1], b[1]);
+                }
+                return Integer.compare(b[0], a[0]); // Descending start point for ties
+            }
+        });
+
+        int minSize = 0;
+        // p1 and p2 store the two largest elements currently in our result set S
+        // which satisfy the coverage condition of the previously processed intervals.
+        // Initialize with invalid values.
+        int p1 = -1;
+        int p2 = -1;
+
+        for (int[] interval : intervals) {
+            int start = interval[0];
+            int end = interval[1];
+
+            // 2. Check coverage
+            if (start > p1) { // Current interval needs at least two new points
+                // We need 2 new points. The greedy choice is 'end' and 'end - 1'.
+                minSize += 2;
+                p2 = end - 1;
+                p1 = end;
+            } else if (start > p2) { // Current interval needs exactly one new point
+                // We need 1 new point. The greedy choice is 'end'.
+                minSize += 1;
+                p2 = p1; // Shift p1 to p2 position
+                p1 = end; // Add new p1 (the end point)
+            }
+            // If (start <= p2), the interval already contains both p1 and p2. No action needed.
+        }
+
+        return minSize;
+    }
+}
