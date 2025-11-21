@@ -1,0 +1,35 @@
+//1930. Unique Length-3 Palindromic Subsequences
+class Solution {
+    public int countPalindromicSubsequence(String s) {
+        int totalCount = 0;
+      
+        // Iterate through each possible character from 'a' to 'z'
+        // This character will serve as the first and last character of the palindrome
+        for (char character = 'a'; character <= 'z'; character++) {
+            // Find the first occurrence of the current character
+            int firstIndex = s.indexOf(character);
+            // Find the last occurrence of the current character
+            int lastIndex = s.lastIndexOf(character);
+          
+            // Use a bitmask to track unique characters between first and last occurrence
+            // Each bit position represents a character ('a' = bit 0, 'b' = bit 1, etc.)
+            int uniqueCharacterMask = 0;
+          
+            // Check all characters between the first and last occurrence
+            for (int currentIndex = firstIndex + 1; currentIndex < lastIndex; currentIndex++) {
+                // Convert character to its corresponding bit position (0-25)
+                int bitPosition = s.charAt(currentIndex) - 'a';
+              
+                // Check if this character hasn't been seen before (bit is 0)
+                if ((uniqueCharacterMask >> bitPosition & 1) == 0) {
+                    // Mark this character as seen by setting its bit to 1
+                    uniqueCharacterMask |= 1 << bitPosition;
+                    // Increment count for each unique character found
+                    // This forms a valid palindrome: character + middle + character
+                    totalCount++;
+                }
+            }
+        }
+      
+        return totalCount;
+    }
