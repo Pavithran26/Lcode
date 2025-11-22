@@ -1,0 +1,22 @@
+//3190. Find Minimum Operations to Make All Elements Divisible by Three
+class Solution {
+    public int minimumOperations(int[] nums) {
+        int totalOperations = 0;
+      
+        // Iterate through each number in the array
+        for (int number : nums) {
+            // Calculate the remainder when divided by 3
+            int remainder = number % 3;
+          
+            // If the number is not divisible by 3, we need operations
+            if (remainder != 0) {
+                // We can either subtract the remainder to reach a multiple of 3
+                // or add (3 - remainder) to reach the next multiple of 3
+                // Choose the minimum of these two options
+                totalOperations += Math.min(remainder, 3 - remainder);
+            }
+        }
+      
+        return totalOperations;
+    }
+}
