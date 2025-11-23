@@ -1,0 +1,43 @@
+//1262. Greatest Sum Divisible by Three
+class Solution {
+    public int maxSumDivThree(int[] nums) {
+        int arrayLength = nums.length;
+        // Use a large negative value to represent impossible states
+        final int NEGATIVE_INFINITY = -(1 << 30);
+      
+        // Dynamic programming table
+        // dp[i][j] represents the maximum sum using first i elements
+        // where the sum modulo 3 equals j
+        int[][] dp = new int[arrayLength + 1][3];
+      
+        // Initialize base case: with 0 elements
+        // dp[0][0] = 0 (sum of 0 elements is 0, which mod 3 = 0)
+        // dp[0][1] and dp[0][2] are impossible states
+        dp[0][1] = NEGATIVE_INFINITY;
+        dp[0][2] = NEGATIVE_INFINITY;
+      
+        // Fill the DP table
+        for (int i = 1; i <= arrayLength; i++) {
+            int currentNum = nums[i - 1];
+          
+            // For each possible remainder when divided by 3
+            for (int remainder = 0; remainder < 3; remainder++) {
+                // Two choices for current element:
+                // 1. Don't include current element: dp[i-1][remainder]
+                // 2. Include current element: dp[i-1][previousRemainder] + currentNum
+                //    where previousRemainder is calculated such that
+                //    (previousRemainder + currentNum % 3) % 3 = remainder
+                int previousRemainder = (remainder - currentNum % 3 + 3) % 3;
+              
+                dp[i][remainder] = Math.max(
+                    dp[i - 1][remainder],                      // Don't take current element
+                    dp[i - 1][previousRemainder] + currentNum  // Take current element
+                );
+            }
+        }
+      
+        // Return the maximum sum that is divisible by 3
+        // (sum % 3 == 0, so we need dp[arrayLength][0])
+        return dp[arrayLength][0];
+    }
+}
