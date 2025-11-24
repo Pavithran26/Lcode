@@ -1,0 +1,23 @@
+//1018. Binary Prefix Divisible By 5
+class Solution {
+    public List<Boolean> prefixesDivBy5(int[] nums) {
+        // Initialize result list to store divisibility results
+        List<Boolean> result = new ArrayList<>();
+      
+        // Track the running remainder when dividing by 5
+        int remainder = 0;
+      
+        // Iterate through each binary digit in the array
+        for (int binaryDigit : nums) {
+            // Left shift the current remainder (multiply by 2) and add the new binary digit
+            // Then take modulo 5 to keep the remainder manageable and avoid overflow
+            remainder = (remainder << 1 | binaryDigit) % 5;
+          
+            // Check if current binary number formed is divisible by 5
+            // (remainder equals 0 means divisible by 5)
+            result.add(remainder == 0);
+        }
+      
+        return result;
+    }
+}
