@@ -1,0 +1,24 @@
+//1015. Smallest Integer Divisible by K
+class Solution {
+    public int smallestRepunitDivByK(int k) {
+        // Initialize remainder with 1 % k (first repunit number is 1)
+        int remainder = 1 % k;
+      
+        // Try at most k iterations (pigeonhole principle: if a solution exists,
+        // it will be found within k iterations since there are only k possible remainders)
+        for (int length = 1; length <= k; length++) {
+            // Check if current repunit is divisible by k (remainder is 0)
+            if (remainder == 0) {
+                return length;
+            }
+          
+            // Calculate remainder for next repunit number
+            // Next repunit = current * 10 + 1
+            // Using modular arithmetic: (a * 10 + 1) % k = ((a % k) * 10 + 1) % k
+            remainder = (remainder * 10 + 1) % k;
+        }
+      
+        // No repunit divisible by k exists
+        return -1;
+    }
+}
