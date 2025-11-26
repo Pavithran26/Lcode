@@ -1,0 +1,83 @@
+//2435. Paths in Matrix Whose Sum Is Divisible by K
+class Solution {
+    // Grid dimensions
+    private int rows;
+    private int cols;
+  
+    // Divisor for path sum
+    private int divisor;
+  
+    // Modulo value for result
+    private static final int MOD = (int) 1e9 + 7;
+  
+    // Input grid
+    private int[][] grid;
+  
+    // Memoization cache: dp[row][col][remainder] = number of paths
+    private int[][][] dp;
+
+    /**
+     * Counts the number of paths from top-left to bottom-right
+     * where the sum of values along the path is divisible by k
+     * 
+     * @param grid 2D grid with values
+     * @param k divisor to check path sum against
+     * @return number of valid paths modulo 10^9 + 7
+     */
+    public int numberOfPaths(int[][] grid, int k) {
+        // Initialize instance variables
+        this.grid = grid;
+        this.divisor = k;
+        this.rows = grid.length;
+        this.cols = grid[0].length;
+      
+        // Initialize memoization array with -1 (unvisited state)
+        this.dp = new int[rows][cols][k];
+        for (int[][] matrix : dp) {
+            for (int[] row : matrix) {
+                Arrays.fill(row, -1);
+            }
+        }
+      
+        // Start DFS from top-left corner with initial sum 0
+        return dfs(0, 0, 0);
+    }
+
+    /**
+     * Recursive DFS to explore all paths and count valid ones
+     * 
+     * @param row current row position
+     * @param col current column position
+     * @param currentSum current path sum modulo k
+     * @return number of valid paths from current position
+     */
+    private int dfs(int row, int col, int currentSum) {
+        // Check boundaries
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            return 0;
+        }
+      
+        // Update current sum with current cell value
+        currentSum = (currentSum + grid[row][col]) % divisor;
+      
+        // Check memoization cache
+        if (dp[row][col][currentSum] != -1) {
+            return dp[row][col][currentSum];
+        }
+      
+        // Base case: reached bottom-right corner
+        if (row == rows - 1 && col == cols - 1) {
+            // Return 1 if sum is divisible by k, 0 otherwise
+            return currentSum == 0 ? 1 : 0;
+        }
+      
+        // Recursive case: explore down and right paths
+        int pathCount = dfs(row + 1, col, currentSum) + dfs(row, col + 1, currentSum);
+        pathCount %= MOD;
+      
+        // Store result in cache
+        dp[row][col][currentSum] = pathCount;
+      
+        return pathCount;
+    }
+}
