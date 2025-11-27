@@ -1,0 +1,38 @@
+//3381. Maximum Subarray Sum With Length Divisible by K
+class Solution {
+    public long maxSubarraySum(int[] nums, int k) {
+        // Initialize array to store minimum prefix sums at each position modulo k
+        // minPrefixSum[i] will store the minimum prefix sum seen at positions j where j % k == i
+        long[] minPrefixSum = new long[k];
+      
+        // Initialize with a large value (acts as positive infinity)
+        final long INFINITY = 1L << 62;
+        Arrays.fill(minPrefixSum, INFINITY);
+      
+        // Special initialization: position (k-1) starts at 0
+        // This allows subarrays starting from index 0 to be considered
+        minPrefixSum[k - 1] = 0;
+      
+        // Track the running prefix sum
+        long prefixSum = 0;
+      
+        // Track the maximum subarray sum found
+        long maxSum = -INFINITY;
+      
+        // Iterate through each element in the array
+        for (int i = 0; i < nums.length; ++i) {
+            // Add current element to prefix sum
+            prefixSum += nums[i];
+          
+            // Calculate maximum subarray sum ending at position i
+            // We subtract the minimum prefix sum at position (i % k) to get the maximum subarray
+            // This ensures the subarray length constraint related to k is satisfied
+            maxSum = Math.max(maxSum, prefixSum - minPrefixSum[i % k]);
+          
+            // Update the minimum prefix sum for this position modulo k
+            minPrefixSum[i % k] = Math.min(minPrefixSum[i % k], prefixSum);
+        }
+      
+        return maxSum;
+    }
+}
