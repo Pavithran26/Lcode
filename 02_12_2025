@@ -1,0 +1,33 @@
+//3623. Count Number of Trapezoids I
+from collections import defaultdict
+from typing import List
+
+class Solution:
+    def countTrapezoids(self, points: List[List[int]]) -> int:
+        # Modulo value as required by the problem
+        MOD = 10**9 + 7
+        
+        # 1. Group points by their y-coordinate and count occurrences
+        groups = defaultdict(int)
+        for x, y in points:
+            groups[y] += 1
+            
+        # 2. Get the unique y-coordinates and sort them
+        ys = sorted(groups.keys())
+        
+        # 3. Calculate the number of horizontal edges (pairs of points) possible at each y-level
+        # The number of ways to pick two points from n is nC2 = n * (n - 1) // 2
+        cnt = [(groups[y] * (groups[y] - 1) // 2) % MOD for y in ys]
+        
+        # 4. Use a prefix sum (cumulative total of edge counts) to efficiently count trapezoids
+        # For each level, the number of trapezoids it forms is its edge count multiplied 
+        # by the total edge counts of all levels below it.
+        ans = 0
+        s = 0  # 's' is the cumulative sum of edge counts of previous levels
+        for i in range(len(cnt)):
+            # Add (current level's edges * total edges of all lower levels) to the answer
+            ans = (ans + cnt[i] * s) % MOD
+            # Add current level's edges to the cumulative sum for future levels
+            s = (s + cnt[i]) % MOD
+            
+        return ans
