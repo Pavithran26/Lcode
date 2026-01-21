@@ -1,33 +1,20 @@
-# Language: Python
-from typing import List
-
 class Solution:
-    def minBitwiseArray(self, nums: List[int]) -> List[int]:
-        """
-        Construct an array 'ans' such that:
-        ans[i] OR (ans[i] + 1) == nums[i],
-        and each ans[i] is minimized. If impossible, return 0 for that index.
-        """
-        result = []
+    def minBitwiseArray(self, nums):
+        def solve_one(num):
+            if num % 2 == 0:
+                return -1
+            
+            k = 0
+            temp = num
+            while temp & 1:
+                k += 1
+                temp >>= 1
+            
+            x = num - (1 << (k - 1))
+            if (x | (x + 1)) == num:
+                return x
+            
+            x = (num >> k << k) | ((1 << (k - 1)) - 1)
+            return x
         
-        for num in nums:
-            ans_val = 0
-            # Try to construct the minimal value with bit manipulation
-            for i in reversed(range(num.bit_length())):  # Check bits from highest to lowest
-                # If the current bit in num is 0, set ans_val's bit to 0
-                # If the current bit in num is 1, ensure that ans_val or (ans_val+1) produces 1 in this bit
-                if not (num & (1 << i)):
-                    continue  # leave the bit as 0
-                # Check if setting this bit in ans_val violates the condition
-                if ((ans_val | (1 << i)) | ((ans_val | (1 << i)) + 1)) <= num:
-                    ans_val |= (1 << i)
-            # Check if the condition is satisfied exactly
-            if (ans_val | (ans_val + 1)) != num:
-                ans_val = 0
-            result.append(ans_val)
-        return result
-
-# Usage Example
-nums = [3, 7, 15]
-sol = Solution()
-print(sol.minBitwiseArray(nums))  # Output: [1, 3, 7]
+        return [solve_one(num) for num in nums]
