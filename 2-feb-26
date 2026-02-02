@@ -1,0 +1,71 @@
+#3013. Divide an Array Into Subarrays With Minimum Cost II
+from typing import List
+from sortedcontainers import SortedList
+import heapq
+
+class Solution:
+    def minimumCost(self, nums: List[int], k: int, dist: int) -> int:
+        n = len(nums)
+        if k == 1:
+            return nums[0]
+        
+        # The first element is always included
+        result = nums[0]
+        
+        # We need to choose k-1 more starting points from nums[1:]
+        # They must be within a window of size dist+1
+        
+        # Try all possible windows starting from position i
+        min_cost = float('inf')
+        
+        # We'll use two heaps approach to maintain sum of k-2 smallest elements
+        # in the current window (excluding the first element)
+        
+        # For each window starting at i (i from 1 to n - (k-1))
+        # The window goes from i to min(i + dist, n-1)
+        # We need to pick k-1 elements including nums[i]
+        
+        # Actually, we need a sliding window with two multisets
+        # One for the k-2 smallest elements (main heap)
+        # One for the remaining elements
+        
+        # Let's use two sorted lists
+        def calculate_min_sum_for_start(start_idx):
+            # If there aren't enough elements after start_idx
+            if n - start_idx < k - 1:
+                return float('inf')
+            
+            # The first element in this window is always included
+            # We need to choose k-2 more from the next dist positions
+            
+            end = min(n, start_idx + dist + 1)
+            # Available positions: start_idx + 1 to end - 1
+            
+            if end - start_idx - 1 < k - 2:
+                return float('inf')
+            
+            # Collect elements from start_idx + 1 to end - 1
+            window_elements = []
+            for j in range(start_idx + 1, end):
+                window_elements.append(nums[j])
+            
+            if not window_elements:
+                return float('inf')
+            
+            # Take the smallest k-2 elements
+            window_elements.sort()
+            if len(window_elements) < k - 2:
+                return float('inf')
+            
+            sum_val = sum(window_elements[:k-2])
+            return sum_val
+        
+        # Try all possible starting positions for the second subarray
+        for i in range(1, n):
+            # Calculate the minimum sum for this starting position
+            min_sum = calculate_min_sum_for_start(i)
+            if min_sum != float('inf'):
+                total_cost = result + nums[i] + min_sum
+                min_cost = min(min_cost, total_cost)
+        
+        return min_cost
