@@ -1,0 +1,11 @@
+class Solution:
+    def checkStrings(self, s1: str, s2: str) -> bool:
+        # Collect characters at even indices
+        even1 = [s1[i] for i in range(0, len(s1), 2)]
+        even2 = [s2[i] for i in range(0, len(s2), 2)]
+        # Collect characters at odd indices
+        odd1 = [s1[i] for i in range(1, len(s1), 2)]
+        odd2 = [s2[i] for i in range(1, len(s2), 2)]
+
+        # Compare sorted multisets
+        return sorted(even1) == sorted(even2) and sorted(odd1) == sorted(odd2)
