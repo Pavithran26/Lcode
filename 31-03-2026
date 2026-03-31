@@ -1,0 +1,136 @@
+class Solution:
+    def generateString(self, str1: str, str2: str) -> str:
+        n = len(str1)
+        m = len(str2)
+        L = n + m - 1                     # length of the generated string
+        
+        # ---------- 1. Process 'T' constraints ----------
+        fixed = [None] * L                # None = free, otherwise a character
+        for i, ch in enumerate(str1):
+            if ch == 'T':
+                for j, c in enumerate(str2):
+                    pos = i + j
+                    if fixed[pos] is not None and fixed[pos] != c:
+                        return ""        # inconsistent T constraints
+                    fixed[pos] = c
+        
+        # ---------- 2. Check 'F' constraints that are already forced to match str2 ----------
+        for i, ch in enumerate(str1):
+            if ch == 'F':
+                forced = True
+                for j in range(m):
+                    pos = i + j
+                    if fixed[pos] is None or fixed[pos] != str2[j]:
+                        forced = False
+                        break
+                if forced:
+                    return ""            # impossible, would become str2
+        
+        # Special case: all 'T' -> all positions are fixed, return directly
+        if all(ch == 'T' for ch in str1):
+            # all positions must be fixed (otherwise the T constraints would not cover the whole range)
+            if all(fixed[p] is not None for p in range(L)):
+                return ''.join(fixed[p] for p in range(L))
+        
+        # ---------- 3. Build KMP automaton for str2 ----------
+        # prefix function (failure links)
+        pi = [0] * m
+        for i in range(1, m):
+            j = pi[i-1]
+            while j > 0 and str2[i] != str2[j]:
+                j = pi[j-1]
+            if str2[i] == str2[j]:
+                j += 1
+            pi[i] = j
+        
+        # transition table: trans[state][char] -> next state (0..m)
+        trans = [[0]*26 for _ in range(m+1)]
+        base = ord('a')
+        # state 0
+        for c in range(26):
+            if str2[0] == chr(base + c):
+                trans[0][c] = 1
+        # states 1 .. m-1
+        for s in range(1, m):
+            for c in range(26):
+                if str2[s] == chr(base + c):
+                    trans[s][c] = s + 1
+                else:
+                    trans[s][c] = trans[pi[s-1]][c]
+        # state m (full match) -> use the fallback from pi[m-1]
+        for c in range(26):
+            trans[m][c] = trans[pi[m-1]][c]
+        
+        # pre‑store transitions as lists of (char_index, next_state) for faster iteration
+        trans_list = [list(enumerate(trans[s])) for s in range(m+1)]
+        
+        # ---------- 4. Forbidden full‑match positions ----------
+        # is_forbidden_end[p] == True  <=>  a full match ending at p would start at an 'F' position
+        is_forbidden_end = [False] * L
+        for p in range(m-1, L):
+            start = p - m + 1
+            if str1[start] == 'F':
+                is_forbidden_end[p] = True
+        
+        # ---------- 5. DP from right to left ----------
+        # possible[p][state] == True  iff  the suffix from p can be completed
+        possible = [None] * (L + 1)
+        possible[L] = bytearray([1] * (m + 1))   # base: after last position, always possible
+        
+        for p in range(L-1, -1, -1):
+            row = bytearray(m + 1)
+            nxt = possible[p+1]                  # reference to next row
+            if fixed[p] is not None:             # fixed character
+                c_idx = ord(fixed[p]) - base
+                for s in range(m+1):
+                    ns = trans[s][c_idx]
+                    if ns == m and is_forbidden_end[p]:
+                        continue
+                    if nxt[ns]:
+                        row[s] = 1
+            else:                                # free position
+                for s in range(m+1):
+                    for c_idx, ns in trans_list[s]:
+                        if ns == m and is_forbidden_end[p]:
+                            continue
+                        if nxt[ns]:
+                            row[s] = 1
+                            break
+            possible[p] = row
+        
+        # if the whole string cannot be built, return empty
+        if not possible[0][0]:
+            return ""
+        
+        # ---------- 6. Greedy construction ----------
+        res = []
+        state = 0
+        for p in range(L):
+            if fixed[p] is not None:            # forced character
+                c = fixed[p]
+                c_idx = ord(c) - base
+                ns = trans[state][c_idx]
+                # the feasibility must hold (otherwise DP would have said impossible)
+                if ns == m and is_forbidden_end[p]:
+                    if not possible[p+1][ns]:
+                        return ""
+                else:
+                    if not possible[p+1][ns]:
+                        return ""
+                res.append(c)
+                state = ns
+            else:                               # free position – try smallest character first
+                found = False
+                for c_idx in range(26):
+                    c = chr(base + c_idx)
+                    ns = trans[state][c_idx]
+                    if ns == m and is_forbidden_end[p]:
+                        continue
+                    if possible[p+1][ns]:
+                        res.append(c)
+                        state = ns
+                        found = True
+                        break
+                if not found:                   # should not happen because DP guaranteed existence
+                    return ""
+        return ''.join(res)
