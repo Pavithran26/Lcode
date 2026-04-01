@@ -1,0 +1,40 @@
+from typing import List
+
+class Solution:
+    def survivedRobotsHealths(self, positions: List[int], healths: List[int], directions: str) -> List[int]:
+        n = len(positions)
+        # Pair each robot with its original index
+        robots = [(positions[i], healths[i], directions[i], i) for i in range(n)]
+        # Sort by position ascending
+        robots.sort(key=lambda x: x[0])
+        
+        stack = []  # each element: [health, direction, original_index]
+        
+        for pos, health, direc, idx in robots:
+            # Process collisions while the current robot moves left and the top of stack moves right
+            while stack and stack[-1][1] == 'R' and direc == 'L':
+                top_health, top_direc, top_idx = stack[-1]
+                if health > top_health:
+                    # Current robot wins
+                    health -= 1
+                    stack.pop()
+                    # Continue checking with the next robot on the stack
+                elif health < top_health:
+                    # Top robot wins
+                    top_health -= 1
+                    stack[-1][0] = top_health
+                    health = 0  # current robot dies
+                    break
+                else:  # equal health
+                    # Both die
+                    stack.pop()
+                    health = 0
+                    break
+            # If the current robot still has positive health, it survives
+            if health > 0:
+                stack.append([health, direc, idx])
+        
+        # Collect survivors with original indices, sort by index, and output healths
+        survivors = [(idx, health) for health, _, idx in stack]
+        survivors.sort(key=lambda x: x[0])
+        return [health for _, health in survivors]
