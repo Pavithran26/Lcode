@@ -1,0 +1,48 @@
+from typing import List
+
+class Solution:
+    def maximumAmount(self, coins: List[List[int]]) -> int:
+        m, n = len(coins), len(coins[0])
+        NEG_INF = -10**15
+
+        # dp[i][j][k] = maximum coins when reaching (i, j) with exactly k neutralizations used
+        dp = [[[NEG_INF] * 3 for _ in range(n)] for __ in range(m)]
+
+        # Initialize the starting cell
+        start = coins[0][0]
+        if start >= 0:
+            # Non‑negative: neutralization does nothing but can be wasted
+            for k in range(3):
+                dp[0][0][k] = start
+        else:
+            # Negative: we can either not neutralize or neutralize once
+            dp[0][0][0] = start          # no neutralization
+            dp[0][0][1] = 0              # neutralize this cell
+            dp[0][0][2] = start          # cannot neutralize twice, same as no neutralization
+
+        # Fill the DP table
+        for i in range(m):
+            for j in range(n):
+                if i == 0 and j == 0:
+                    continue
+
+                # From the top cell (i-1, j)
+                if i > 0:
+                    for k in range(3):
+                        if dp[i-1][j][k] != NEG_INF:
+                            # Do not neutralize current cell
+                            dp[i][j][k] = max(dp[i][j][k], dp[i-1][j][k] + coins[i][j])
+                            # Neutralize current cell if it's negative and we have a neutralization left
+                            if coins[i][j] < 0 and k > 0 and dp[i-1][j][k-1] != NEG_INF:
+                                dp[i][j][k] = max(dp[i][j][k], dp[i-1][j][k-1] + 0)
+
+                # From the left cell (i, j-1)
+                if j > 0:
+                    for k in range(3):
+                        if dp[i][j-1][k] != NEG_INF:
+                            dp[i][j][k] = max(dp[i][j][k], dp[i][j-1][k] + coins[i][j])
+                            if coins[i][j] < 0 and k > 0 and dp[i][j-1][k-1] != NEG_INF:
+                                dp[i][j][k] = max(dp[i][j][k], dp[i][j-1][k-1] + 0)
+
+        # The answer is the best among using 0, 1, or 2 neutralizations at the destination
+        return max(dp[m-1][n-1])
