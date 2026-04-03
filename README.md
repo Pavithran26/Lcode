@@ -31,5 +31,16 @@ Files are named based on the date the problem was solved:
 - **Primary Languages**: Java, Python
 - **Active Since**: May 2025
 
+## 🔗 Connect with Me
+
+<div align="left">
+  <a href="https://leetcode.com/u/Pavithran26/">
+    <img src="https://img.shields.io/badge/LeetCode-Pavithran26-FFA116?style=for-the-badge&logo=leetcode&logoColor=white" alt="LeetCode" />
+  </a>
+  <a href="https://github.com/Pavithran26/Lcode">
+    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+</div>
+
 ---
-*Maintained by Pavithran.*
+*Maintained by Pavithran S.*
