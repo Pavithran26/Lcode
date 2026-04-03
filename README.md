@@ -34,7 +34,7 @@ Files are named based on the date the problem was solved:
 ## 🔗 Connect with Me
 
 <div align="left">
-  <a href="https://leetcode.com/u/pavithran26/">
+  <a href="https://leetcode.com/u/pavithran7284/">
     <img src="https://img.shields.io/badge/LeetCode-Pavithran26-FFA116?style=for-the-badge&logo=leetcode&logoColor=white" alt="LeetCode" />
   </a>
   <a href="https://github.com/Pavithran26/Lcode">
