@@ -1,0 +1,19 @@
+class Solution:
+    def decodeCiphertext(self, encodedText: str, rows: int) -> str:
+        n = len(encodedText)
+        if n == 0:
+            return ""
+        cols = n // rows                    # number of columns in the matrix
+        step = cols + 1                     # index increment when moving down a diagonal
+        result = []
+
+        # Traverse each diagonal starting from the top row
+        for c in range(cols):
+            # Number of cells in this diagonal (cannot exceed rows or remaining columns)
+            max_r = min(rows, cols - c)
+            for r in range(max_r):
+                idx = r * step + c          # flat index in encodedText
+                result.append(encodedText[idx])
+
+        # Join and strip trailing spaces (original text has no trailing spaces)
+        return ''.join(result).rstrip()
