@@ -1,0 +1,29 @@
+from typing import List
+
+class Solution:
+    def robotSim(self, commands: List[int], obstacles: List[List[int]]) -> int:
+        # Store obstacles as a set of tuples for O(1) lookup
+        obstacle_set = set(map(tuple, obstacles))
+        
+        # Directions: 0 = north, 1 = east, 2 = south, 3 = west
+        dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        dir_idx = 0   # start facing north
+        
+        x = y = 0      # current position
+        max_dist = 0   # maximum squared distance
+        
+        for cmd in commands:
+            if cmd == -2:            # turn left
+                dir_idx = (dir_idx - 1) % 4
+            elif cmd == -1:          # turn right
+                dir_idx = (dir_idx + 1) % 4
+            else:                    # move forward cmd steps
+                dx, dy = dirs[dir_idx]
+                for _ in range(cmd):
+                    nx, ny = x + dx, y + dy
+                    if (nx, ny) in obstacle_set:
+                        break        # stop before obstacle
+                    x, y = nx, ny
+                    max_dist = max(max_dist, x*x + y*y)
+        
+        return max_dist
