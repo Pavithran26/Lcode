@@ -1,0 +1,52 @@
+from typing import List
+
+class Robot:
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        # perimeter length (number of steps to return to (0,0) after one full lap)
+        self.L = 2 * (width + height) - 4
+        
+        # precompute states for steps 1 .. L
+        self.pos_seq = []   # list of [x, y] after each step
+        self.dir_seq = []   # list of direction strings after each step
+        
+        x, y = 0, 0
+        # direction order: East, North, West, South (counterclockwise)
+        dirs = ["East", "North", "West", "South"]
+        dx = [1, 0, -1, 0]
+        dy = [0, 1, 0, -1]
+        dir_idx = 0  # start facing East
+        
+        for _ in range(self.L):
+            # perform one step (may turn at corners)
+            while True:
+                nx = x + dx[dir_idx]
+                ny = y + dy[dir_idx]
+                if 0 <= nx < width and 0 <= ny < height:
+                    x, y = nx, ny
+                    break
+                else:
+                    dir_idx = (dir_idx + 1) % 4
+            self.pos_seq.append([x, y])
+            self.dir_seq.append(dirs[dir_idx])
+        
+        self.total_steps = 0
+        self.current_pos = [0, 0]
+        self.current_dir = "East"
+
+    def step(self, num: int) -> None:
+        self.total_steps += num
+        if self.total_steps == 0:
+            self.current_pos = [0, 0]
+            self.current_dir = "East"
+        else:
+            idx = (self.total_steps - 1) % self.L
+            self.current_pos = self.pos_seq[idx]
+            self.current_dir = self.dir_seq[idx]
+
+    def getPos(self) -> List[int]:
+        return self.current_pos
+
+    def getDir(self) -> str:
+        return self.current_dir
