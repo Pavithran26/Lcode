@@ -1,0 +1,15 @@
+from typing import List
+
+class Solution:
+    def xorAfterQueries(self, nums: List[int], queries: List[List[int]]) -> int:
+        MOD = 10**9 + 7
+        # Apply each query
+        for l, r, k, v in queries:
+            # Iterate over indices from l to r with step k
+            for idx in range(l, r + 1, k):
+                nums[idx] = (nums[idx] * v) % MOD
+        # Compute XOR of all elements
+        result = 0
+        for x in nums:
+            result ^= x
+        return result
