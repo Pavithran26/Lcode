@@ -1,0 +1,75 @@
+from typing import List
+
+class Solution:
+    def xorAfterQueries(self, nums: List[int], queries: List[List[int]]) -> int:
+        MOD = 10**9 + 7
+        n = len(nums)
+        # threshold for sqrt decomposition
+        T = int(n ** 0.5) + 1
+
+        # product multiplier for each index
+        prod = [1] * n
+
+        # separate queries: small (ki <= T) and large (ki > T)
+        small = [[] for _ in range(T + 1)]   # index by k
+        large = []
+        max_vi = 0
+        for li, ri, ki, vi in queries:
+            if ki <= T:
+                small[ki].append((li, ri, vi))
+            else:
+                large.append((li, ri, ki, vi))
+            if vi > max_vi:
+                max_vi = vi
+
+        # precompute modular inverses for all possible vi
+        inv = [0] * (max_vi + 1)
+        if max_vi >= 1:
+            inv[1] = 1
+            for i in range(2, max_vi + 1):
+                inv[i] = MOD - (MOD // i) * inv[MOD % i] % MOD
+
+        # process large queries directly
+        for li, ri, ki, vi in large:
+            for idx in range(li, ri + 1, ki):
+                prod[idx] = (prod[idx] * vi) % MOD
+
+        # process small queries group by step k
+        for k in range(1, T + 1):
+            if not small[k]:
+                continue
+
+            # for each residue class r (0..k-1) prepare a difference array
+            counts = []      # number of indices in each residue class
+            diffs = []       # difference arrays (size = count+1)
+            for r in range(k):
+                cnt = (n - r + k - 1) // k   # number of indices with residue r
+                counts.append(cnt)
+                diffs.append([1] * (cnt + 1))
+
+            # apply all updates for this k to the difference arrays
+            for li, ri, vi in small[k]:
+                r = li % k
+                j_start = (li - r) // k
+                j_end = (ri - r) // k
+                diff_r = diffs[r]
+                diff_r[j_start] = (diff_r[j_start] * vi) % MOD
+                inv_vi = inv[vi]
+                diff_r[j_end + 1] = (diff_r[j_end + 1] * inv_vi) % MOD
+
+            # compute prefix products and update the global product array
+            for r in range(k):
+                diff_r = diffs[r]
+                cnt = counts[r]
+                cur = 1
+                base = r
+                step = k
+                for j in range(cnt):
+                    cur = (cur * diff_r[j]) % MOD
+                    prod[base + j * step] = (prod[base + j * step] * cur) % MOD
+
+        # final XOR of (nums[i] * prod[i]) % MOD
+        ans = 0
+        for i in range(n):
+            ans ^= (nums[i] * prod[i]) % MOD
+        return ans
