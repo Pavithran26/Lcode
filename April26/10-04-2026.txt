@@ -1,0 +1,21 @@
+from typing import List
+
+class Solution:
+    def minimumDistance(self, nums: List[int]) -> int:
+        n = len(nums)
+        if n < 3:
+            return -1
+        
+        min_dist = float('inf')
+        # Iterate over all triples (i < j < k)
+        for i in range(n):
+            for j in range(i+1, n):
+                if nums[i] != nums[j]:
+                    continue
+                for k in range(j+1, n):
+                    if nums[i] == nums[k]:  # all three equal
+                        dist = abs(i-j) + abs(j-k) + abs(k-i)
+                        if dist < min_dist:
+                            min_dist = dist
+        
+        return min_dist if min_dist != float('inf') else -1
