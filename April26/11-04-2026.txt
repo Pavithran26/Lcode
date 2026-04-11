@@ -1,0 +1,23 @@
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def minimumDistance(self, nums: List[int]) -> int:
+        # Map each value to list of indices where it occurs
+        index_map = defaultdict(list)
+        for i, num in enumerate(nums):
+            index_map[num].append(i)
+        
+        min_dist = float('inf')
+        # For each value that appears at least three times
+        for indices in index_map.values():
+            if len(indices) >= 3:
+                # indices are naturally sorted due to increasing i
+                # Slide a window of size 3
+                for j in range(len(indices) - 2):
+                    # distance = 2 * (max - min) for sorted indices
+                    dist = 2 * (indices[j+2] - indices[j])
+                    if dist < min_dist:
+                        min_dist = dist
+        
+        return min_dist if min_dist != float('inf') else -1
