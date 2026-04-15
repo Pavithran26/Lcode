@@ -1,0 +1,40 @@
+Flow-wise screen list
+
+Client Material GRN Flow
+	
+	Create GRN → /inventory/grn
+
+	Edit/View GRN from queue → /inventory/grn?editId=<id>
+
+	GRN Queue → /inventory/clientgrnqueue
+
+
+Material Return to Client Flow
+
+	Material Return Queue → /inventory/materialreturnqueue
+
+	Create Material Return → /inventory/materialreturn
+
+	Edit/View Return from queue → /inventory/materialreturn?editId=<id>
+
+Delivery Receipt Flow
+
+	Delivery Receipt Queue → /inventory/deliveryreceiptqueue
+
+	Create Delivery Receipt → /inventory/deliveryreceipt
+
+	Edit/View Receipt from queue → /inventory/deliveryreceipt?editId=<id>
+
+
+Business process order
+
+	GRN (receive from client) → Use qty tracking → Material Return to client → Delivery Receipt confirmation
+
+
+
+
+
+
+the filter should work properly ok like the department chooses then only the Material Type  enable when the Material Type chosses then only the Source Type should enable ok make sure that ??
+
+

@@ -1,0 +1,17 @@
+from typing import List
+
+class Solution:
+    def closestTarget(self, words: List[str], target: str, startIndex: int) -> int:
+        n = len(words)
+        min_dist = float('inf')
+        
+        for i, word in enumerate(words):
+            if word == target:
+                # Circular distance between i and startIndex
+                direct = abs(i - startIndex)
+                circular = n - direct
+                dist = direct if direct < circular else circular
+                if dist < min_dist:
+                    min_dist = dist
+                    
+        return -1 if min_dist == float('inf') else min_dist
