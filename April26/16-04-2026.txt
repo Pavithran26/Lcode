@@ -1,0 +1,34 @@
+from typing import List
+from collections import defaultdict
+import bisect
+
+class Solution:
+    def solveQueries(self, nums: List[int], queries: List[int]) -> List[int]:
+        n = len(nums)
+        # Group indices by value
+        pos_dict = defaultdict(list)
+        for idx, val in enumerate(nums):
+            pos_dict[val].append(idx)
+
+        res = []
+        for q in queries:
+            val = nums[q]
+            pos = pos_dict[val]
+            # No other equal element
+            if len(pos) == 1:
+                res.append(-1)
+                continue
+
+            # Find position of q in the sorted list
+            i = bisect.bisect_left(pos, q)  # pos[i] == q
+            # Neighbors in circular list
+            prev = pos[(i - 1) % len(pos)]
+            nxt = pos[(i + 1) % len(pos)]
+
+            # Circular distances
+            dist_prev = min(abs(q - prev), n - abs(q - prev))
+            dist_next = min(abs(q - nxt), n - abs(q - nxt))
+
+            res.append(min(dist_prev, dist_next))
+
+        return res
