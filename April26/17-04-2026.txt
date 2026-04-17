@@ -1,0 +1,32 @@
+from typing import List
+import bisect
+
+class Solution:
+    def minMirrorPairDistance(self, nums: List[int]) -> int:
+        # Helper to reverse an integer (ignoring leading zeros)
+        def reverse_int(x: int) -> int:
+            return int(str(x)[::-1])
+        
+        # Build mapping from value to sorted list of indices
+        idx_map = {}
+        for i, val in enumerate(nums):
+            idx_map.setdefault(val, []).append(i)
+        
+        INF = 10**9
+        min_dist = INF
+        
+        for i, val in enumerate(nums):
+            rev = reverse_int(val)
+            lst = idx_map.get(rev)
+            if not lst:
+                continue
+            # Find first index >= i
+            pos = bisect.bisect_left(lst, i)
+            # If the found index equals i (same element), skip it
+            if pos < len(lst) and lst[pos] == i:
+                pos += 1
+            # If there is an index greater than i, compute distance
+            if pos < len(lst):
+                min_dist = min(min_dist, lst[pos] - i)
+        
+        return -1 if min_dist == INF else min_dist
