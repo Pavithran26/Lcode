@@ -1,0 +1,18 @@
+from typing import List
+
+class Solution:
+    def maxDistance(self, colors: List[int]) -> int:
+        n = len(colors)
+        # Farthest index from the left that has a different color than the first house
+        left = 0
+        while left < n and colors[left] == colors[-1]:
+            left += 1
+        dist_from_end = n - 1 - left if left < n else 0
+        
+        # Farthest index from the right that has a different color than the last house
+        right = n - 1
+        while right >= 0 and colors[right] == colors[0]:
+            right -= 1
+        dist_from_start = right if right >= 0 else 0
+        
+        return max(dist_from_end, dist_from_start)
