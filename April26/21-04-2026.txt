@@ -1,0 +1,49 @@
+from typing import List
+
+class Solution:
+    def minimumHammingDistance(self, source: List[int], target: List[int], allowedSwaps: List[List[int]]) -> int:
+        n = len(source)
+        parent = list(range(n))
+        rank = [0] * n
+        
+        def find(x: int) -> int:
+            # Path compression
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+        
+        def union(x: int, y: int) -> None:
+            rx, ry = find(x), find(y)
+            if rx == ry:
+                return
+            if rank[rx] < rank[ry]:
+                parent[rx] = ry
+            elif rank[rx] > rank[ry]:
+                parent[ry] = rx
+            else:
+                parent[ry] = rx
+                rank[rx] += 1
+        
+        # Build disjoint-set union from allowed swaps
+        for a, b in allowedSwaps:
+            union(a, b)
+        
+        # Group indices by their component root
+        components = {}
+        for i in range(n):
+            root = find(i)
+            components.setdefault(root, []).append(i)
+        
+        matches = 0
+        for indices in components.values():
+            src_cnt = {}
+            tgt_cnt = {}
+            for idx in indices:
+                src_cnt[source[idx]] = src_cnt.get(source[idx], 0) + 1
+                tgt_cnt[target[idx]] = tgt_cnt.get(target[idx], 0) + 1
+            # For each value, add the number of matching pairs we can form
+            for val, cnt in src_cnt.items():
+                matches += min(cnt, tgt_cnt.get(val, 0))
+        
+        return n - matches
