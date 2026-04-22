@@ -1,0 +1,13 @@
+from typing import List
+
+class Solution:
+    def twoEditWords(self, queries: List[str], dictionary: List[str]) -> List[str]:
+        result = []
+        for q in queries:
+            for d in dictionary:
+                # Count positions where characters differ
+                diff = sum(1 for a, b in zip(q, d) if a != b)
+                if diff <= 2:
+                    result.append(q)
+                    break
+        return result
