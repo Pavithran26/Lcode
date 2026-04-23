@@ -1,0 +1,37 @@
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def distance(self, nums: List[int]) -> List[int]:
+        # Group indices by their value
+        value_to_indices = defaultdict(list)
+        for i, num in enumerate(nums):
+            value_to_indices[num].append(i)
+        
+        # Result array
+        result = [0] * len(nums)
+        
+        # Process each group of identical values
+        for indices in value_to_indices.values():
+            k = len(indices)
+            if k == 1:
+                continue  # Single element contributes 0
+            
+            # Calculate prefix sums of positions
+            prefix_sum = [0] * (k + 1)
+            for i in range(k):
+                prefix_sum[i + 1] = prefix_sum[i] + indices[i]
+            
+            # For each index in this group, calculate sum of distances
+            for i in range(k):
+                # Sum of distances to left indices
+                left_count = i
+                left_sum = left_count * indices[i] - prefix_sum[i]
+                
+                # Sum of distances to right indices
+                right_count = k - i - 1
+                right_sum = (prefix_sum[k] - prefix_sum[i + 1]) - right_count * indices[i]
+                
+                result[indices[i]] = left_sum + right_sum
+        
+        return result
