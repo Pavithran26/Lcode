@@ -1,0 +1,60 @@
+name: Sync LeetCode Solutions
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 4 * * *"   # 10:00 AM IST (Tamil Nadu time)
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Sync LeetCode submissions
+        uses: ME-ON1/Leetcode-SyncInAction@v1.1.1
+        with:
+          cookieVal: ${{ secrets.cookieVal }}
+          solution_location: './temp_solutions'
+      
+      - name: Rename to MonthYear/DD-MM-YYYY
+        shell: bash
+        run: |
+          FOLDER_NAME=$(date +"%B%y")
+          TODAY=$(date +"%d-%m-%Y")
+          mkdir -p "$FOLDER_NAME"
+          
+          for file in ./temp_solutions/*; do
+            if [ -f "$file" ]; then
+              extension="${file##*.}"
+              cp "$file" "$FOLDER_NAME/${TODAY}.${extension}"
+            fi
+          done
+          rm -rf ./temp_solutions
+          echo "folder_name=$FOLDER_NAME" >> $GITHUB_ENV
+          echo "today=$TODAY" >> $GITHUB_ENV
+      
+      - name: Fetch problem title
+        shell: bash
+        run: |
+          PROBLEM_TITLE=$(curl -s -X POST https://leetcode.com/graphql \
+            -H "Content-Type: application/json" \
+            -d '{"query":"query { activeDailyCodingChallengeQuestion { question { title } } }"}' \
+            | jq -r '.data.activeDailyCodingChallengeQuestion.question.title')
+          
+          if [ -z "$PROBLEM_TITLE" ] || [ "$PROBLEM_TITLE" = "null" ]; then
+            PROBLEM_TITLE="Daily Challenge $(date +'%Y-%m-%d')"
+          fi
+          
+          echo "problem_title=$PROBLEM_TITLE" >> $GITHUB_ENV
+      
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Solved: ${{ env.problem_title }}"
+          commit_user_name: "Pavithran26"
+          commit_user_email: "pavithran2004cs@gmail.com"
