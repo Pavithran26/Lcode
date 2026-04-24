@@ -1,0 +1,9 @@
+class Solution:
+    def furthestDistanceFromOrigin(self, moves: str) -> int:
+        count_L = moves.count('L')
+        count_R = moves.count('R')
+        count_underscore = moves.count('_')
+        
+        # The maximum distance is the absolute difference between L and R
+        # plus all underscores going in the direction that increases distance
+        return abs(count_L - count_R) + count_underscore
