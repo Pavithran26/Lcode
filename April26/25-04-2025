@@ -1,0 +1,75 @@
+from typing import List
+
+class Solution:
+    def maxDistance(self, side: int, points: List[List[int]], k: int) -> int:
+        L = 4 * side
+        
+        # Convert each point to a linear coordinate along the perimeter (clockwise)
+        t = []
+        for x, y in points:
+            if y == 0:                      # bottom edge
+                pos = x
+            elif x == side:                 # right edge
+                pos = side + y
+            elif y == side:                 # top edge
+                pos = 3 * side - x
+            else:                           # left edge (x == 0)
+                pos = 4 * side - y
+            t.append(pos)
+        t.sort()
+        n = len(t)
+        
+        # Double the array for circular handling
+        T = t + [x + L for x in t]
+        m = 2 * n
+        
+        # Binary search on answer d (max possible min distance)
+        lo, hi = 0, side   # answer lies in [0, side]
+        
+        # Helper to check if a given distance d is feasible
+        def feasible(d: int) -> bool:
+            if d == 0:
+                return True
+            
+            # next[i] = smallest index j > i such that T[j] >= T[i] + d
+            nxt = [0] * m
+            j = 0
+            for i in range(m):
+                while j < m and T[j] < T[i] + d:
+                    j += 1
+                nxt[i] = j
+            
+            # Binary lifting table (log2(k) + 1 levels)
+            max_log = (k).bit_length()
+            up = [[m] * (max_log + 1) for _ in range(m)]
+            for i in range(m):
+                up[i][0] = nxt[i]
+            for p in range(1, max_log + 1):
+                for i in range(m):
+                    if up[i][p-1] < m:
+                        up[i][p] = up[ up[i][p-1] ][p-1]
+            
+            # Try every possible starting point (only the original n points)
+            for start in range(n):
+                pos = start
+                cnt = 1   # we already take the starting point
+                # Use binary lifting to take as many steps as possible without exceeding k points
+                for p in range(max_log, -1, -1):
+                    if cnt + (1 << p) <= k:
+                        nxt_pos = up[pos][p]
+                        if nxt_pos < start + n:   # stay inside the window of length L
+                            pos = nxt_pos
+                            cnt += (1 << p)
+                if cnt == k:
+                    span = T[pos] - T[start]
+                    if span <= L - d:
+                        return True
+            return False
+        
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if feasible(mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return lo
