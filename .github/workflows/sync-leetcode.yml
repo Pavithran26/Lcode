@@ -17,17 +17,19 @@ jobs:
       - name: Fetch today's LeetCode solution
         shell: bash
         run: |
-          # Get today's daily problem info
           RESPONSE=$(curl -s -X POST https://leetcode.com/graphql \
             -H "Content-Type: application/json" \
-            -H "Cookie: ${{ secrets.cookieVal }}" \
+            -H "Cookie: LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}; csrftoken=${{ secrets.LEETCODE_CSRF }}" \
             -d '{"query":"query { activeDailyCodingChallengeQuestion { question { title titleSlug } } }"}')
+
+          echo "Response: $RESPONSE"
 
           PROBLEM_TITLE=$(echo $RESPONSE | jq -r '.data.activeDailyCodingChallengeQuestion.question.title')
           PROBLEM_SLUG=$(echo $RESPONSE | jq -r '.data.activeDailyCodingChallengeQuestion.question.titleSlug')
 
           if [ -z "$PROBLEM_TITLE" ] || [ "$PROBLEM_TITLE" = "null" ]; then
             PROBLEM_TITLE="Daily Challenge $(date +'%Y-%m-%d')"
+            PROBLEM_SLUG="daily-challenge"
           fi
 
           echo "problem_title=$PROBLEM_TITLE" >> $GITHUB_ENV
@@ -38,21 +40,22 @@ jobs:
         run: |
           SLUG="${{ env.problem_slug }}"
 
-          # Fetch latest accepted submission for the problem
           SUBMISSION=$(curl -s -X POST https://leetcode.com/graphql \
             -H "Content-Type: application/json" \
-            -H "Cookie: ${{ secrets.cookieVal }}" \
+            -H "Cookie: LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}; csrftoken=${{ secrets.LEETCODE_CSRF }}" \
+            -H "x-csrftoken: ${{ secrets.LEETCODE_CSRF }}" \
             -d "{\"query\":\"query { submissionList(offset: 0, limit: 5, questionSlug: \\\"$SLUG\\\") { submissions { statusDisplay lang code } } }\"}")
 
-          CODE=$(echo $SUBMISSION | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .code')
-          LANG=$(echo $SUBMISSION | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .lang')
+          echo "Submission Response: $SUBMISSION"
 
-          if [ "$CODE" = "null" ] || [ -z "$CODE" ]; then
-            echo "No accepted submission found today"
+          CODE=$(echo "$SUBMISSION" | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .code // empty')
+          LANG=$(echo "$SUBMISSION" | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .lang // empty')
+
+          if [ -z "$CODE" ] || [ "$CODE" = "null" ]; then
+            echo "No accepted submission found — skipping"
             exit 0
           fi
 
-          # Map language to extension
           case "$LANG" in
             python3|python) EXT="py" ;;
             java) EXT="java" ;;
@@ -66,7 +69,6 @@ jobs:
           FOLDER_NAME=$(date +"%B%y")
           TODAY=$(date +"%d-%m-%Y")
           mkdir -p "$FOLDER_NAME"
-
           echo "$CODE" > "$FOLDER_NAME/${TODAY}.${EXT}"
 
           echo "folder_name=$FOLDER_NAME" >> $GITHUB_ENV
