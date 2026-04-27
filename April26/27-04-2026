@@ -1,0 +1,46 @@
+
+from collections import deque
+from typing import List
+
+class Solution:
+    def hasValidPath(self, grid: List[List[int]]) -> bool:
+        m, n = len(grid), len(grid[0])
+        # directions: up, down, left, right
+        dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]   # indices 0,1,2,3
+        opposite = {0: 1, 1: 0, 2: 3, 3: 2}
+
+        # street type -> list of direction indices that are open
+        street = {
+            1: [2, 3],   # left, right
+            2: [0, 1],   # up, down
+            3: [2, 1],   # left, down
+            4: [3, 1],   # right, down
+            5: [2, 0],   # left, up
+            6: [3, 0]    # right, up
+        }
+
+        visited = [[False] * n for _ in range(m)]
+        q = deque()
+        q.append((0, 0))
+        visited[0][0] = True
+
+        while q:
+            r, c = q.popleft()
+            if (r, c) == (m - 1, n - 1):
+                return True
+            for i, (dr, dc) in enumerate(dirs):
+                nr, nc = r + dr, c + dc
+                if not (0 <= nr < m and 0 <= nc < n):
+                    continue
+                if visited[nr][nc]:
+                    continue
+                # current cell must allow direction i
+                if i not in street[grid[r][c]]:
+                    continue
+                # neighbour must allow the opposite direction
+                if opposite[i] not in street[grid[nr][nc]]:
+                    continue
+                visited[nr][nc] = True
+                q.append((nr, nc))
+
+        return False
