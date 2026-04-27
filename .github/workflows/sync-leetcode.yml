@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Sync LeetCode submissions
-        uses: ME-ON1/Leetcode-SyncInAction@v1.1.1
+        uses: ME-ON1/Leetcode-SyncInAction@main
         with:
           cookieVal: ${{ secrets.cookieVal }}
           solution_location: './temp_solutions'
