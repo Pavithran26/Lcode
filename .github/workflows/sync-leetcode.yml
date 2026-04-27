@@ -1,5 +1,4 @@
 name: Sync LeetCode Solutions
-
 on:
   workflow_dispatch:
   schedule:
@@ -19,7 +18,7 @@ jobs:
         uses: ME-ON1/Leetcode-SyncInAction@main
         with:
           cookieVal: ${{ secrets.cookieVal }}
-          solution_location: './temp_solutions'
+          solution_location: 'temp_solutions'
       
       - name: Rename to MonthYear/DD-MM-YYYY
         shell: bash
@@ -28,13 +27,13 @@ jobs:
           TODAY=$(date +"%d-%m-%Y")
           mkdir -p "$FOLDER_NAME"
           
-          for file in ./temp_solutions/*; do
+          for file in temp_solutions/*; do
             if [ -f "$file" ]; then
               extension="${file##*.}"
               cp "$file" "$FOLDER_NAME/${TODAY}.${extension}"
             fi
           done
-          rm -rf ./temp_solutions
+          rm -rf temp_solutions
           echo "folder_name=$FOLDER_NAME" >> $GITHUB_ENV
           echo "today=$TODAY" >> $GITHUB_ENV
       
