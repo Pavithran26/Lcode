@@ -40,19 +40,39 @@ jobs:
         run: |
           SLUG="${{ env.problem_slug }}"
 
+          # Step 1: Get submission ID first
           SUBMISSION=$(curl -s -X POST https://leetcode.com/graphql \
             -H "Content-Type: application/json" \
             -H "Cookie: LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}; csrftoken=${{ secrets.LEETCODE_CSRF }}" \
             -H "x-csrftoken: ${{ secrets.LEETCODE_CSRF }}" \
-            -d "{\"query\":\"query { submissionList(offset: 0, limit: 5, questionSlug: \\\"$SLUG\\\") { submissions { statusDisplay lang code } } }\"}")
+            -d "{\"query\":\"query { submissionList(offset: 0, limit: 5, questionSlug: \\\"$SLUG\\\") { submissions { id statusDisplay lang } } }\"}")
 
-          echo "Submission Response: $SUBMISSION"
+          echo "Submission List: $SUBMISSION"
 
-          CODE=$(echo "$SUBMISSION" | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .code // empty')
+          # Get latest accepted submission ID
+          SUB_ID=$(echo "$SUBMISSION" | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .id // empty')
           LANG=$(echo "$SUBMISSION" | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .lang // empty')
 
-          if [ -z "$CODE" ] || [ "$CODE" = "null" ]; then
+          if [ -z "$SUB_ID" ] || [ "$SUB_ID" = "null" ]; then
             echo "No accepted submission found — skipping"
+            exit 0
+          fi
+
+          echo "Found submission ID: $SUB_ID"
+
+          # Step 2: Fetch actual code using submission ID
+          DETAIL=$(curl -s -X POST https://leetcode.com/graphql \
+            -H "Content-Type: application/json" \
+            -H "Cookie: LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}; csrftoken=${{ secrets.LEETCODE_CSRF }}" \
+            -H "x-csrftoken: ${{ secrets.LEETCODE_CSRF }}" \
+            -d "{\"query\":\"query { submissionDetail(id: $SUB_ID) { code } }\"}")
+
+          echo "Detail Response: $DETAIL"
+
+          CODE=$(echo "$DETAIL" | jq -r '.data.submissionDetail.code // empty')
+
+          if [ -z "$CODE" ] || [ "$CODE" = "null" ]; then
+            echo "Could not fetch code — skipping"
             exit 0
           fi
 
