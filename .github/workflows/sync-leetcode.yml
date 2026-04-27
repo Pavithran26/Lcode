@@ -2,57 +2,78 @@ name: Sync LeetCode Solutions
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 4 * * *"   # 10:00 AM IST (Tamil Nadu time)
+    - cron: "30 4 * * *"   # 10:00 AM IST
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Sync LeetCode submissions
-        uses: ME-ON1/Leetcode-SyncInAction@main
-        with:
-          cookieVal: ${{ secrets.cookieVal }}
-          solution_location: 'temp_solutions'
-      
-      - name: Rename to MonthYear/DD-MM-YYYY
+
+      - name: Fetch today's LeetCode solution
         shell: bash
         run: |
-          FOLDER_NAME=$(date +"%B%y")
-          TODAY=$(date +"%d-%m-%Y")
-          mkdir -p "$FOLDER_NAME"
-          
-          for file in temp_solutions/*; do
-            if [ -f "$file" ]; then
-              extension="${file##*.}"
-              cp "$file" "$FOLDER_NAME/${TODAY}.${extension}"
-            fi
-          done
-          rm -rf temp_solutions
-          echo "folder_name=$FOLDER_NAME" >> $GITHUB_ENV
-          echo "today=$TODAY" >> $GITHUB_ENV
-      
-      - name: Fetch problem title
-        shell: bash
-        run: |
-          PROBLEM_TITLE=$(curl -s -X POST https://leetcode.com/graphql \
+          # Get today's daily problem info
+          RESPONSE=$(curl -s -X POST https://leetcode.com/graphql \
             -H "Content-Type: application/json" \
-            -d '{"query":"query { activeDailyCodingChallengeQuestion { question { title } } }"}' \
-            | jq -r '.data.activeDailyCodingChallengeQuestion.question.title')
-          
+            -H "Cookie: ${{ secrets.cookieVal }}" \
+            -d '{"query":"query { activeDailyCodingChallengeQuestion { question { title titleSlug } } }"}')
+
+          PROBLEM_TITLE=$(echo $RESPONSE | jq -r '.data.activeDailyCodingChallengeQuestion.question.title')
+          PROBLEM_SLUG=$(echo $RESPONSE | jq -r '.data.activeDailyCodingChallengeQuestion.question.titleSlug')
+
           if [ -z "$PROBLEM_TITLE" ] || [ "$PROBLEM_TITLE" = "null" ]; then
             PROBLEM_TITLE="Daily Challenge $(date +'%Y-%m-%d')"
           fi
-          
+
           echo "problem_title=$PROBLEM_TITLE" >> $GITHUB_ENV
-      
+          echo "problem_slug=$PROBLEM_SLUG" >> $GITHUB_ENV
+
+      - name: Fetch submitted solution from LeetCode
+        shell: bash
+        run: |
+          SLUG="${{ env.problem_slug }}"
+
+          # Fetch latest accepted submission for the problem
+          SUBMISSION=$(curl -s -X POST https://leetcode.com/graphql \
+            -H "Content-Type: application/json" \
+            -H "Cookie: ${{ secrets.cookieVal }}" \
+            -d "{\"query\":\"query { submissionList(offset: 0, limit: 5, questionSlug: \\\"$SLUG\\\") { submissions { statusDisplay lang code } } }\"}")
+
+          CODE=$(echo $SUBMISSION | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .code')
+          LANG=$(echo $SUBMISSION | jq -r '[.data.submissionList.submissions[] | select(.statusDisplay=="Accepted")] | first | .lang')
+
+          if [ "$CODE" = "null" ] || [ -z "$CODE" ]; then
+            echo "No accepted submission found today"
+            exit 0
+          fi
+
+          # Map language to extension
+          case "$LANG" in
+            python3|python) EXT="py" ;;
+            java) EXT="java" ;;
+            cpp) EXT="cpp" ;;
+            c) EXT="c" ;;
+            javascript) EXT="js" ;;
+            typescript) EXT="ts" ;;
+            *) EXT="txt" ;;
+          esac
+
+          FOLDER_NAME=$(date +"%B%y")
+          TODAY=$(date +"%d-%m-%Y")
+          mkdir -p "$FOLDER_NAME"
+
+          echo "$CODE" > "$FOLDER_NAME/${TODAY}.${EXT}"
+
+          echo "folder_name=$FOLDER_NAME" >> $GITHUB_ENV
+          echo "today=$TODAY" >> $GITHUB_ENV
+
       - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Solved: ${{ env.problem_title }}"
           commit_user_name: "Pavithran26"
