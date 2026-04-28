@@ -1,0 +1,22 @@
+from typing import List
+
+class Solution:
+    def minOperations(self, grid: List[List[int]], x: int) -> int:
+        # Flatten the grid into a single list
+        arr = [num for row in grid for num in row]
+        
+        # Check if all elements have the same remainder modulo x
+        remainder = arr[0] % x
+        for val in arr:
+            if val % x != remainder:
+                return -1
+        
+        # Transform to normalized integers (b_i)
+        b = [(val - remainder) // x for val in arr]
+        b.sort()
+        
+        # Median minimizes sum of absolute differences
+        median = b[len(b) // 2]
+        operations = sum(abs(val - median) for val in b)
+        
+        return operations
