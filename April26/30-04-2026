@@ -1,0 +1,47 @@
+from typing import List
+
+class Solution:
+    def maxPathScore(self, grid: List[List[int]], k: int) -> int:
+        m, n = len(grid), len(grid[0])
+        
+        # DP table: dp[i][j][c] = max score at cell (i,j) with exact cost c
+        dp = [[[-1] * (k + 1) for _ in range(n)] for _ in range(m)]
+        
+        # Cost and score mapping
+        # For each cell value: (score, cost)
+        info = {0: (0, 0), 1: (1, 1), 2: (2, 1)}
+        
+        # Start at (0,0)
+        start_score, start_cost = info[grid[0][0]]
+        dp[0][0][start_cost] = start_score
+        
+        # Iterate through grid
+        for i in range(m):
+            for j in range(n):
+                if i == 0 and j == 0:
+                    continue
+                
+                score, cost = info[grid[i][j]]
+                
+                # From top
+                if i > 0:
+                    for prev_cost in range(k + 1 - cost):
+                        if dp[i-1][j][prev_cost] != -1:
+                            new_cost = prev_cost + cost
+                            dp[i][j][new_cost] = max(dp[i][j][new_cost], 
+                                                    dp[i-1][j][prev_cost] + score)
+                
+                # From left
+                if j > 0:
+                    for prev_cost in range(k + 1 - cost):
+                        if dp[i][j-1][prev_cost] != -1:
+                            new_cost = prev_cost + cost
+                            dp[i][j][new_cost] = max(dp[i][j][new_cost], 
+                                                    dp[i][j-1][prev_cost] + score)
+        
+        # Find maximum score at destination
+        max_score = -1
+        for c in range(k + 1):
+            max_score = max(max_score, dp[m-1][n-1][c])
+        
+        return max_score
