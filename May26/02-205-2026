@@ -1,0 +1,16 @@
+class Solution:
+    def rotatedDigits(self, n: int) -> int:
+        def is_good(num):
+            s = str(num)
+            has_changing_digit = False
+            for digit in s:
+                if digit in '347':
+                    return False
+                if digit in '2569':
+                    has_changing_digit = True
+            return has_changing_digit
+        count = 0
+        for i in range(1, n + 1):
+            if is_good(i):
+                count += 1
+        return count
