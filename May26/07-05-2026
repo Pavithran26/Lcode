@@ -1,0 +1,47 @@
+from typing import List
+from sortedcontainers import SortedList
+
+class Solution:
+    def maxValue(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        parent = list(range(n))
+        max_val = nums[:]
+        comp_left = list(range(n))
+
+        def find(x):
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        def union(x, y):
+            rx, ry = find(x), find(y)
+            if rx == ry:
+                return
+            if max_val[rx] < max_val[ry]:
+                rx, ry = ry, rx
+            parent[ry] = rx
+            comp_left[rx] = min(comp_left[rx], comp_left[ry])
+
+        order = sorted(range(n), key=lambda x: -nums[x])
+        active = SortedList()
+        active_max = -1
+
+        for i in order:
+            cur_left = i
+            if active_max > nums[i]:
+                to_remove = []
+                for lpos in active.irange(None, i - 1):
+                    rep = find(lpos)
+                    if max_val[rep] > nums[i]:
+                        cur_left = min(cur_left, comp_left[rep])
+                        union(i, lpos)
+                        to_remove.append(lpos)
+                for lpos in to_remove:
+                    active.remove(lpos)
+            root = find(i)
+            comp_left[root] = cur_left
+            active.add(cur_left)
+            active_max = max(active_max, nums[i])
+
+        return [max_val[find(i)] for i in range(n)]
