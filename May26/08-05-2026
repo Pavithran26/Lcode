@@ -1,0 +1,70 @@
+from typing import List
+from collections import defaultdict, deque
+
+class Solution:
+    def minJumps(self, nums: List[int]) -> int:
+        n = len(nums)
+        if n == 1:
+            return 0
+        
+        # Precompute smallest prime factor (SPF) up to max(nums)
+        max_val = max(nums)
+        spf = list(range(max_val + 1))
+        for i in range(2, int(max_val ** 0.5) + 1):
+            if spf[i] == i:  # i is prime
+                for j in range(i * i, max_val + 1, i):
+                    if spf[j] == j:
+                        spf[j] = i
+        
+        # Build mapping: for each prime, store indices divisible by it
+        prime_to_indices = defaultdict(list)
+        
+        for i, val in enumerate(nums):
+            # Get unique prime factors using SPF
+            while val > 1:
+                p = spf[val]
+                prime_to_indices[p].append(i)
+                # Remove all factors of p
+                while val % p == 0:
+                    val //= p
+        
+        # BFS
+        visited_index = [False] * n
+        visited_prime = [False] * (max_val + 1)
+        dist = [-1] * n
+        queue = deque([0])
+        visited_index[0] = True
+        dist[0] = 0
+        
+        while queue:
+            i = queue.popleft()
+            
+            if i == n - 1:
+                return dist[i]
+            
+            # Adjacent moves
+            if i + 1 < n and not visited_index[i + 1]:
+                visited_index[i + 1] = True
+                dist[i + 1] = dist[i] + 1
+                queue.append(i + 1)
+            
+            if i - 1 >= 0 and not visited_index[i - 1]:
+                visited_index[i - 1] = True
+                dist[i - 1] = dist[i] + 1
+                queue.append(i - 1)
+            
+            # Prime teleportation
+            val = nums[i]
+            # Check if val is prime (by checking if spf[val] == val)
+            if val <= max_val and spf[val] == val and not visited_prime[val]:
+                visited_prime[val] = True
+                if val in prime_to_indices:
+                    for j in prime_to_indices[val]:
+                        if j != i and not visited_index[j]:
+                            visited_index[j] = True
+                            dist[j] = dist[i] + 1
+                            queue.append(j)
+                    # Clear the list to avoid reprocessing
+                    prime_to_indices[val].clear()
+        
+        return dist[n - 1]
