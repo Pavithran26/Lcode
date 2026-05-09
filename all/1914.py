@@ -1,0 +1,63 @@
+# 1914. Cyclically Rotating a Grid
+
+from typing import List
+
+class Solution:
+    def rotateGrid(self, grid: List[List[int]], k: int) -> List[List[int]]:
+        m, n = len(grid), len(grid[0])
+        layers = min(m, n) // 2
+        
+        for layer in range(layers):
+            # Get all elements in the current layer in counter-clockwise order
+            elements = []
+            
+            top, left = layer, layer
+            bottom, right = m - 1 - layer, n - 1 - layer
+            
+            # Down the left side (top to bottom)
+            for i in range(top, bottom + 1):
+                elements.append(grid[i][left])
+            
+            # Right across the bottom (left+1 to right)
+            for j in range(left + 1, right + 1):
+                elements.append(grid[bottom][j])
+            
+            # Up the right side (bottom-1 to top)
+            for i in range(bottom - 1, top - 1, -1):
+                elements.append(grid[i][right])
+            
+            # Left across the top (right-1 to left+1)
+            for j in range(right - 1, left, -1):
+                elements.append(grid[top][j])
+            
+            # Rotate k steps clockwise (which is counter-clockwise for the matrix)
+            # We want the element that goes to the starting position to be the one k steps back
+            rot = k % len(elements)
+            if rot > 0:
+                # Right rotation by rot positions
+                elements = elements[-rot:] + elements[:-rot]
+            
+            # Place back in counter-clockwise order
+            idx = 0
+            
+            # Fill down the left side
+            for i in range(top, bottom + 1):
+                grid[i][left] = elements[idx]
+                idx += 1
+            
+            # Fill right across the bottom
+            for j in range(left + 1, right + 1):
+                grid[bottom][j] = elements[idx]
+                idx += 1
+            
+            # Fill up the right side
+            for i in range(bottom - 1, top - 1, -1):
+                grid[i][right] = elements[idx]
+                idx += 1
+            
+            # Fill left across the top
+            for j in range(right - 1, left, -1):
+                grid[top][j] = elements[idx]
+                idx += 1
+        
+        return grid
