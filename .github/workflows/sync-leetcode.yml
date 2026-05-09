@@ -63,17 +63,26 @@ jobs:
           fi
 
           echo "Found submission ID: $SUB_ID"
+          echo "Language: $LANG"
 
-          # Fetch actual code using submission ID
+          # Fetch actual code using submission ID - CORRECTED QUERY
           DETAIL=$(curl -s -X POST https://leetcode.com/graphql \
             -H "Content-Type: application/json" \
             -H "Cookie: LEETCODE_SESSION=${{ secrets.LEETCODE_SESSION }}; csrftoken=${{ secrets.LEETCODE_CSRF }}" \
             -H "x-csrftoken: ${{ secrets.LEETCODE_CSRF }}" \
-            -d "{\"query\":\"query { submissionDetail(id: $SUB_ID) { code } }\"}")
+            -d "{\"query\":\"query { submissionDetails(submissionId: $SUB_ID) { code } }\"}")
 
           echo "Detail Response: $DETAIL"
 
-          CODE=$(echo "$DETAIL" | jq -r '.data.submissionDetail.code // empty')
+          # Check for GraphQL errors
+          if echo "$DETAIL" | jq -e '.errors' > /dev/null 2>&1; then
+            ERROR_MSG=$(echo "$DETAIL" | jq -r '.errors[0].message')
+            echo "GraphQL Error: $ERROR_MSG"
+            exit 1
+          fi
+
+          # Extract code
+          CODE=$(echo "$DETAIL" | jq -r '.data.submissionDetails.code // empty')
 
           if [ -z "$CODE" ] || [ "$CODE" = "null" ]; then
             echo "Could not fetch code — exiting"
@@ -111,26 +120,37 @@ jobs:
           if [ -f "all/$FILENAME" ]; then
             echo "File all/$FILENAME already exists — creating versioned backup"
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            mv "all/$FILENAME" "all/${PROBLEM_NUMBER}_backup_${TIMESTAMP}.${EXT}"
+            cp "all/$FILENAME" "all/${PROBLEM_NUMBER}_backup_${TIMESTAMP}.${EXT}"
             echo "Existing file backed up as ${PROBLEM_NUMBER}_backup_${TIMESTAMP}.${EXT}"
           fi
           
           # Save the solution
-          echo "$CODE" > "all/$FILENAME"
+          printf "%s\n" "$CODE" > "all/$FILENAME"
           
-          # Add problem title as comment at the top of file (optional)
-          if [[ "$EXT" == "py" ]]; then
-            sed -i "1i# ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
-          elif [[ "$EXT" == "java" ]]; then
-            sed -i "1i// ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
-          elif [[ "$EXT" == "cpp" ]] || [[ "$EXT" == "c" ]]; then
-            sed -i "1i// ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
-          elif [[ "$EXT" == "js" ]] || [[ "$EXT" == "ts" ]]; then
-            sed -i "1i// ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
-          fi
+          # Add problem title as comment at the top of file
+          case "$EXT" in
+            py)
+              sed -i "1i# ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+            java|cpp|c|js|ts|go|rs|swift|kt|scala|dart)
+              sed -i "1i// ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+            rb)
+              sed -i "1i# ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+            php)
+              sed -i "1i<?php // ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+            cs)
+              sed -i "1i// ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+            exs)
+              sed -i "1i# ${{ env.problem_number }}. ${{ env.problem_title }}\n" "all/$FILENAME"
+              ;;
+          esac
           
           echo "filename=$FILENAME" >> $GITHUB_ENV
-          echo "Solution saved as all/$FILENAME"
+          echo "✅ Solution saved as all/$FILENAME"
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -139,3 +159,4 @@ jobs:
           commit_user_name: "Pavithran26"
           commit_user_email: "pavithran2004cs@gmail.com"
           commit_author: "Pavithran26 <pavithran2004cs@gmail.com>"
+          commit_message: "${{ env.problem_number }}. ${{ env.problem_title }}"
