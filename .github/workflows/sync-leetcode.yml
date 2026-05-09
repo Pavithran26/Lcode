@@ -159,4 +159,3 @@ jobs:
           commit_user_name: "Pavithran26"
           commit_user_email: "pavithran2004cs@gmail.com"
           commit_author: "Pavithran26 <pavithran2004cs@gmail.com>"
-          commit_message: "${{ env.problem_number }}. ${{ env.problem_title }}"
