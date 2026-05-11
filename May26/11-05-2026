@@ -1,0 +1,10 @@
+from typing import List
+
+class Solution:
+    def separateDigits(self, nums: List[int]) -> List[int]:
+        result = []
+        for num in nums:
+            # Convert the number to string to iterate over digits
+            for ch in str(num):
+                result.append(int(ch))
+        return result
