@@ -1,0 +1,19 @@
+from typing import List
+
+class Solution:
+    def minimumEffort(self, tasks: List[List[int]]) -> int:
+        # Sort tasks by (minimum - actual) in descending order.
+        # Tasks with larger "gap" should be done earlier.
+        tasks.sort(key=lambda x: x[1] - x[0], reverse=True)
+        
+        ans = 0          # minimal initial energy needed
+        prefix = 0       # sum of actual energies of tasks done so far
+        
+        for actual, minimum in tasks:
+            # Before starting this task, we need at least 'minimum' energy.
+            # Current energy = initial - prefix, so we need:
+            # initial - prefix >= minimum  =>  initial >= minimum + prefix
+            ans = max(ans, minimum + prefix)
+            prefix += actual
+        
+        return ans
