@@ -1,0 +1,39 @@
+from typing import List
+
+class Solution:
+    def minMoves(self, nums: List[int], limit: int) -> int:
+        n = len(nums)
+        max_sum = 2 * limit                     # maximum possible target sum
+        diff = [0] * (max_sum + 3)              # difference array, indices 0..max_sum+2
+
+        for i in range(n // 2):
+            a = nums[i]
+            b = nums[n - 1 - i]
+            low = min(a, b)
+            high = max(a, b)
+            total = a + b
+
+            # Base cost: 2 moves for every target sum
+            diff[2] += 2
+            diff[max_sum + 1] -= 2
+
+            # Range where exactly one move suffices: [low+1, high+limit]
+            l = low + 1
+            r = high + limit
+            if l < 2:
+                l = 2
+            if r > max_sum:
+                r = max_sum
+            diff[l] -= 1
+            diff[r + 1] += 1
+
+            # Exact sum needs 0 moves → subtract one more (so total -2)
+            diff[total] -= 1
+            diff[total + 1] += 1
+        cur = 0
+        ans = float('inf')
+        for s in range(2, max_sum + 1):
+            cur += diff[s]
+            ans = min(ans, cur)
+
+        return ans
