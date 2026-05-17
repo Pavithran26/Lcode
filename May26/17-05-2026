@@ -1,0 +1,28 @@
+from typing import List
+from collections import deque
+
+class Solution:
+    def canReach(self, arr: List[int], start: int) -> bool:
+        n = len(arr)
+        visited = [False] * n
+        queue = deque([start])
+        visited[start] = True
+        
+        while queue:
+            i = queue.popleft()
+            if arr[i] == 0:
+                return True
+            
+            # Jump forward
+            forward = i + arr[i]
+            if forward < n and not visited[forward]:
+                visited[forward] = True
+                queue.append(forward)
+            
+            # Jump backward
+            backward = i - arr[i]
+            if backward >= 0 and not visited[backward]:
+                visited[backward] = True
+                queue.append(backward)
+        
+        return False
