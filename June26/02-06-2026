@@ -1,0 +1,18 @@
+class Solution {
+    func earliestFinishTime(_ landStartTime: [Int], _ landDuration: [Int], _ waterStartTime: [Int], _ waterDuration: [Int]) -> Int {
+        var minFinish = Int.max
+        
+        for i in 0..<landStartTime.count {
+            for j in 0..<waterStartTime.count {
+                // Land first, then water
+                let finishLandFirst = max(waterStartTime[j], landStartTime[i] + landDuration[i]) + waterDuration[j]
+                // Water first, then land
+                let finishWaterFirst = max(landStartTime[i], waterStartTime[j] + waterDuration[j]) + landDuration[i]
+                
+                minFinish = min(minFinish, finishLandFirst, finishWaterFirst)
+            }
+        }
+        
+        return minFinish
+    }
+}
