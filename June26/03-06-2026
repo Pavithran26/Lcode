@@ -1,0 +1,58 @@
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+class Solution {
+public:
+    int earliestFinishTime(vector<int>& landStartTime, vector<int>& landDuration,
+                           vector<int>& waterStartTime, vector<int>& waterDuration) {
+        int n = landStartTime.size();
+        int m = waterStartTime.size();
+
+        // Compute land finish times and minimum
+        int minLandFinish = INT_MAX;
+        vector<int> landFinish(n);
+        for (int i = 0; i < n; ++i) {
+            landFinish[i] = landStartTime[i] + landDuration[i];
+            if (landFinish[i] < minLandFinish)
+                minLandFinish = landFinish[i];
+        }
+
+        // Compute water finish times and minimum
+        int minWaterFinish = INT_MAX;
+        vector<int> waterFinish(m);
+        for (int j = 0; j < m; ++j) {
+            waterFinish[j] = waterStartTime[j] + waterDuration[j];
+            if (waterFinish[j] < minWaterFinish)
+                minWaterFinish = waterFinish[j];
+        }
+
+        // Order: land first, then water
+        int bestLW = INT_MAX;
+        for (int j = 0; j < m; ++j) {
+            int candidate;
+            if (minLandFinish <= waterStartTime[j])
+                candidate = waterFinish[j];
+            else
+                candidate = minLandFinish + waterDuration[j];
+            if (candidate < bestLW)
+                bestLW = candidate;
+        }
+
+        // Order: water first, then land
+        int bestWL = INT_MAX;
+        for (int i = 0; i < n; ++i) {
+            int candidate;
+            if (minWaterFinish <= landStartTime[i])
+                candidate = landFinish[i];
+            else
+                candidate = minWaterFinish + landDuration[i];
+            if (candidate < bestWL)
+                bestWL = candidate;
+        }
+
+        return min(bestLW, bestWL);
+    }
+};
