@@ -1,0 +1,23 @@
+class Solution {
+    public int totalWaviness(int num1, int num2) {
+        int total = 0;
+        for (int n = num1; n <= num2; n++) {
+            String s = Integer.toString(n);
+            int len = s.length();
+            if (len < 3) continue;
+            int cnt = 0;
+            for (int i = 1; i < len - 1; i++) {
+                char left = s.charAt(i - 1);
+                char mid = s.charAt(i);
+                char right = s.charAt(i + 1);
+                if (mid > left && mid > right) {
+                    cnt++;
+                } else if (mid < left && mid < right) {
+                    cnt++;
+                }
+            }
+            total += cnt;
+        }
+        return total;
+    }
+}
