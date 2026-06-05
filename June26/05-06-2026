@@ -1,0 +1,53 @@
+class Solution:
+    def totalWaviness(self, num1: int, num2: int) -> int:
+        # Digit DP: returns total waviness for all numbers in [1, x]
+        def solve(x: int) -> int:
+            if x <= 0:
+                return 0
+            s = str(x)
+            n = len(s)
+            digits = [int(ch) for ch in s]
+
+            from functools import lru_cache
+
+            @lru_cache(maxsize=None)
+            def dp(pos: int, tight: bool, started: bool, prev2: int, prev1: int):
+                """
+                Returns (count, total_waviness) for the suffix starting at pos.
+                prev2 and prev1 are the last two digits (10 means "no digit").
+                """
+                if pos == n:
+                    # A valid number is one that has at least one digit (started=True)
+                    return (1, 0) if started else (0, 0)
+
+                limit = digits[pos] if tight else 9
+                total_cnt = 0
+                total_sum = 0
+
+                for d in range(limit + 1):
+                    next_tight = tight and (d == limit)
+
+                    if not started and d == 0:
+                        # Still leading zeros
+                        cnt, sm = dp(pos + 1, next_tight, False, 10, 10)
+                        total_cnt += cnt
+                        total_sum += sm
+                    else:
+                        # We place a non‑zero digit (or the first zero after the number started)
+                        # Contribution of the digit prev1 (if we have enough history)
+                        add = 0
+                        if prev2 != 10:  # we have at least two previous digits
+                            if (prev1 > prev2 and prev1 > d) or (prev1 < prev2 and prev1 < d):
+                                add = 1
+
+                        cnt, sm = dp(pos + 1, next_tight, True, prev1, d)
+                        total_cnt += cnt
+                        total_sum += sm + add * cnt
+
+                return (total_cnt, total_sum)
+
+            # Start with no digits placed, tight = True, started = False, sentinel = 10
+            return dp(0, True, False, 10, 10)[1]
+
+        # Prefix sum trick
+        return solve(num2) - solve(num1 - 1)
