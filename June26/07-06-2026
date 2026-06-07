@@ -1,0 +1,57 @@
+/**
+ * 2196. Create Binary Tree From Descriptions
+ * 
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public TreeNode createBinaryTree(int[][] descriptions) {
+        // Map value to TreeNode
+        java.util.Map<Integer, TreeNode> nodeMap = new java.util.HashMap<>();
+        // Track all child nodes to identify root
+        java.util.Set<Integer> children = new java.util.HashSet<>();
+        
+        for (int[] desc : descriptions) {
+            int parentVal = desc[0];
+            int childVal = desc[1];
+            int isLeft = desc[2];
+            
+            // Create or get parent node
+            nodeMap.putIfAbsent(parentVal, new TreeNode(parentVal));
+            // Create or get child node
+            nodeMap.putIfAbsent(childVal, new TreeNode(childVal));
+            
+            TreeNode parent = nodeMap.get(parentVal);
+            TreeNode child = nodeMap.get(childVal);
+            
+            if (isLeft == 1) {
+                parent.left = child;
+            } else {
+                parent.right = child;
+            }
+            
+            children.add(childVal);
+        }
+        
+        // Find root: node that never appears as a child
+        for (int[] desc : descriptions) {
+            int parentVal = desc[0];
+            if (!children.contains(parentVal)) {
+                return nodeMap.get(parentVal);
+            }
+        }
+        
+        return null; // Should not happen for valid input
+    }
+}
