@@ -1,0 +1,52 @@
+import java.util.*;
+
+class Solution {
+    private static final int MOD = 1_000_000_007;
+
+    public int assignEdgeWeights(int[][] edges) {
+        int n = edges.length + 1; // number of nodes
+        List<Integer>[] graph = new ArrayList[n + 1];
+        for (int i = 1; i <= n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+        for (int[] e : edges) {
+            int u = e[0], v = e[1];
+            graph[u].add(v);
+            graph[v].add(u);
+        }
+
+        // BFS from root 1 to find maximum depth (number of edges from root)
+        int[] dist = new int[n + 1];
+        Arrays.fill(dist, -1);
+        Queue<Integer> q = new LinkedList<>();
+        dist[1] = 0;
+        q.offer(1);
+        int maxDepth = 0;
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            for (int v : graph[u]) {
+                if (dist[v] == -1) {
+                    dist[v] = dist[u] + 1;
+                    maxDepth = Math.max(maxDepth, dist[v]);
+                    q.offer(v);
+                }
+            }
+        }
+
+        // Path length L = maxDepth (number of edges). 
+        // Number of assignments with odd sum = 2^(L-1)
+        if (maxDepth == 0) return 0; // not possible for n>=2, but safe
+        long ans = powMod(2, maxDepth - 1);
+        return (int) ans;
+    }
+
+    private long powMod(long a, long b) {
+        long res = 1;
+        while (b > 0) {
+            if ((b & 1) == 1) res = res * a % MOD;
+            a = a * a % MOD;
+            b >>= 1;
+        }
+        return res;
+    }
+}
