@@ -1,0 +1,68 @@
+from collections import deque
+
+class Solution:
+    def assignEdgeWeights(self, edges, queries):
+        MOD = 10**9 + 7
+        n = len(edges) + 1                     # number of nodes
+        adj = [[] for _ in range(n + 1)]
+        for u, v in edges:
+            adj[u].append(v)
+            adj[v].append(u)
+
+        # ---------- LCA preprocessing ----------
+        LOG = (n).bit_length()
+        parent = [[0] * (n + 1) for _ in range(LOG)]
+        depth = [0] * (n + 1)
+
+        # BFS from root 1
+        q = deque([1])
+        visited = [False] * (n + 1)
+        visited[1] = True
+        while q:
+            u = q.popleft()
+            for v in adj[u]:
+                if not visited[v]:
+                    visited[v] = True
+                    depth[v] = depth[u] + 1
+                    parent[0][v] = u
+                    q.append(v)
+
+        # binary lifting table
+        for k in range(1, LOG):
+            for v in range(1, n + 1):
+                parent[k][v] = parent[k-1][parent[k-1][v]]
+
+        # precompute powers of two modulo MOD
+        pow2 = [1] * (n + 1)
+        for i in range(1, n + 1):
+            pow2[i] = (pow2[i-1] * 2) % MOD
+
+        # ---------- answer queries ----------
+        ans = []
+        for u, v in queries:
+            if u == v:
+                ans.append(0)
+                continue
+
+            # find LCA of u and v
+            x, y = u, v
+            if depth[x] < depth[y]:
+                x, y = y, x
+            # lift x to same depth as y
+            diff = depth[x] - depth[y]
+            for k in range(LOG):
+                if diff >> k & 1:
+                    x = parent[k][x]
+            if x == y:
+                lca = x
+            else:
+                for k in range(LOG - 1, -1, -1):
+                    if parent[k][x] != parent[k][y]:
+                        x = parent[k][x]
+                        y = parent[k][y]
+                lca = parent[0][x]
+
+            dist = depth[u] + depth[v] - 2 * depth[lca]
+            ans.append(pow2[dist - 1])        # 2^(dist-1) mod MOD
+
+        return ans
