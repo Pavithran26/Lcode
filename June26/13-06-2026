@@ -1,0 +1,30 @@
+class Solution {
+    public String mapWordWeights(String[] words, int[] weights) {
+        // Use StringBuilder to efficiently construct the result string
+        StringBuilder result = new StringBuilder();
+        
+        // Iterate through each word in the input array
+        for (String word : words) {
+            int sum = 0;
+            
+            // Calculate the total weight of the word
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
+                // 'a' corresponds to index 0, 'b' to index 1, etc.
+                sum += weights[c - 'a'];
+            }
+            
+            // Apply modulo 26 to find the position in the reverse alphabet
+            int remainder = sum % 26;
+            
+            // Map to the reverse alphabet: 0 maps to 'z', 1 maps to 'y', ..., 25 maps to 'a'
+            // 'z' - remainder accomplishes this reversed mapping
+            char mappedChar = (char) ('z' - remainder);
+            
+            // Append the mapped character to the result
+            result.append(mappedChar);
+        }
+        
+        return result.toString();
+    }
+}
