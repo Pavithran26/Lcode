@@ -1,0 +1,48 @@
+import java.util.*;
+
+class Solution {
+    public String processStr(String s) {
+        Deque<Character> deque = new ArrayDeque<>();
+        boolean reversed = false;
+
+        for (char c : s.toCharArray()) {
+            if (c == '*') {
+                if (!deque.isEmpty()) {
+                    if (reversed) {
+                        deque.removeFirst();   // remove last character of actual result
+                    } else {
+                        deque.removeLast();
+                    }
+                }
+            } else if (c == '#') {
+                // Duplicate the current result: append a copy of the entire deque
+                List<Character> copy = new ArrayList<>(deque);
+                deque.addAll(copy);
+            } else if (c == '%') {
+                reversed = !reversed;         // toggle reversal flag
+            } else {
+                // lowercase letter: append to actual result
+                if (reversed) {
+                    deque.addFirst(c);
+                } else {
+                    deque.addLast(c);
+                }
+            }
+        }
+
+        // Build final string according to the reversal flag
+        StringBuilder result = new StringBuilder();
+        if (reversed) {
+            for (char ch : deque) {
+                result.append(ch);
+            }
+            // The actual string is the reverse of the deque's order
+            result.reverse();
+        } else {
+            for (char ch : deque) {
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+}
