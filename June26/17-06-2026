@@ -1,0 +1,50 @@
+class Solution:
+    def processStr(self, s: str, k: int) -> str:
+        n = len(s)
+
+        # Calculate final length
+        lengths = [0] * (n + 1)
+
+        for i, ch in enumerate(s):
+            lengths[i + 1] = lengths[i]
+
+            if 'a' <= ch <= 'z':
+                lengths[i + 1] += 1
+            elif ch == '*':
+                if lengths[i + 1] > 0:
+                    lengths[i + 1] -= 1
+            elif ch == '#':
+                lengths[i + 1] *= 2
+            elif ch == '%':
+                pass
+
+        if k >= lengths[n]:
+            return '.'
+
+        def find(i, pos):
+            if i == 0:
+                return '.'
+
+            ch = s[i - 1]
+            prev_len = lengths[i - 1]
+
+            if 'a' <= ch <= 'z':
+                if pos == prev_len:
+                    return ch
+                return find(i - 1, pos)
+
+            elif ch == '*':
+                return find(i - 1, pos)
+
+            elif ch == '#':
+                if pos >= prev_len:
+                    pos -= prev_len
+                return find(i - 1, pos)
+
+            else:  # ch == '%'
+                if prev_len == 0:
+                    return '.'
+                pos = prev_len - 1 - pos
+                return find(i - 1, pos)
+
+        return find(n, k)
