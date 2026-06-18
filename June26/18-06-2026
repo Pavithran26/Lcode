@@ -1,0 +1,15 @@
+class Solution {
+    public double angleClock(int hour, int minutes) {
+        // Calculate the angle of the minute hand
+        double minuteAngle = 6.0 * minutes;
+        
+        // Calculate the angle of the hour hand
+        double hourAngle = 30.0 * (hour % 12) + 0.5 * minutes;
+        
+        // Find the absolute difference
+        double diff = Math.abs(hourAngle - minuteAngle);
+        
+        // Return the smaller angle
+        return Math.min(diff, 360.0 - diff);
+    }
+}
