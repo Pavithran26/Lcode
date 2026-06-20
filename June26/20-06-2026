@@ -1,0 +1,64 @@
+class Solution {
+public:
+    int maxBuilding(int n, vector<vector<int>>& restrictions) {
+        // If no restrictions, we can go from 0 to n-1
+        if (restrictions.empty()) {
+            return n - 1;
+        }
+        
+        // Sort restrictions by building ID
+        sort(restrictions.begin(), restrictions.end());
+        
+        // Add virtual restriction at building 1 with height 0
+        vector<vector<int>> rest;
+        rest.push_back({1, 0});
+        for (auto& r : restrictions) {
+            rest.push_back(r);
+        }
+        
+        int m = rest.size();
+        
+        // First pass: left to right
+        // Ensure each restriction is reachable from the left
+        for (int i = 1; i < m; i++) {
+            int dist = rest[i][0] - rest[i-1][0];
+            rest[i][1] = min(rest[i][1], rest[i-1][1] + dist);
+        }
+        
+        // Second pass: right to left
+        // Ensure each restriction is reachable from the right
+        for (int i = m - 2; i >= 0; i--) {
+            int dist = rest[i+1][0] - rest[i][0];
+            rest[i][1] = min(rest[i][1], rest[i+1][1] + dist);
+        }
+        
+        // Now find the maximum possible height
+        int ans = 0;
+        
+        // Check at each restricted building
+        for (auto& r : rest) {
+            ans = max(ans, r[1]);
+        }
+        
+        // Check between restricted buildings
+        for (int i = 0; i < m - 1; i++) {
+            int dist = rest[i+1][0] - rest[i][0];
+            int h1 = rest[i][1];
+            int h2 = rest[i+1][1];
+            
+            // Maximum height we can achieve between two restrictions
+            // We can go up from h1, then down to h2
+            // The peak height = (dist + h1 + h2) / 2
+            int peak = (dist + h1 + h2) / 2;
+            ans = max(ans, peak);
+        }
+        
+        // Check after the last restriction (towards building n)
+        int lastId = rest[m-1][0];
+        int lastHeight = rest[m-1][1];
+        int remaining = n - lastId;
+        ans = max(ans, lastHeight + remaining);
+        
+        return ans;
+    }
+};
