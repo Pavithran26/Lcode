@@ -1,0 +1,33 @@
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        // Find the maximum cost to determine the size of the counting array
+        int maxCost = 0;
+        for (int cost : costs) {
+            maxCost = Math.max(maxCost, cost);
+        }
+        
+        // Create a frequency array for counting sort
+        int[] count = new int[maxCost + 1];
+        for (int cost : costs) {
+            count[cost]++;
+        }
+        
+        int iceCreamsBought = 0;
+        
+        // Iterate through the costs from cheapest to most expensive
+        for (int cost = 1; cost <= maxCost; cost++) {
+            // If we cannot afford this cost, we can't afford any higher cost either
+            if (coins < cost) {
+                break;
+            }
+            
+            // Determine how many ice creams of this cost we can buy
+            int canBuy = Math.min(count[cost], coins / cost);
+            
+            iceCreamsBought += canBuy;
+            coins -= canBuy * cost;
+        }
+        
+        return iceCreamsBought;
+    }
+}
