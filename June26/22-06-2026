@@ -1,0 +1,19 @@
+class Solution {
+    public int maxNumberOfBalloons(String text) {
+        // Frequency array for 26 lowercase letters
+        int[] freq = new int[26];
+        for (char c : text.toCharArray()) {
+            freq[c - 'a']++;
+        }
+
+        // Required letters for "balloon": b, a, l, l, o, o, n
+        int b = freq['b' - 'a'];
+        int a = freq['a' - 'a'];
+        int l = freq['l' - 'a'] / 2;  // need 2 'l's
+        int o = freq['o' - 'a'] / 2;  // need 2 'o's
+        int n = freq['n' - 'a'];
+
+        // The maximum number of "balloon" is limited by the minimum of these
+        return Math.min(Math.min(Math.min(b, a), Math.min(l, o)), n);
+    }
+}
