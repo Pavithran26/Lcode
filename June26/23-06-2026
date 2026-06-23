@@ -1,0 +1,50 @@
+class Solution {
+    private static final int MOD = 1_000_000_007;
+
+    public int zigZagArrays(int n, int l, int r) {
+        int m = r - l + 1;          // number of possible values
+        
+        // dp[x] = number of valid prefixes of current length ending with value x
+        // for the pattern where the first difference is positive (a1 < a2)
+        long[] dp = new long[m + 1];
+        for (int x = 1; x <= m; x++) {
+            dp[x] = 1;              // length 1: any value is allowed
+        }
+
+        // Build sequences of length 2, 3, ..., n
+        for (int pos = 1; pos < n; pos++) {
+            long[] ndp = new long[m + 1];
+
+            if (pos % 2 == 1) {
+                // Need a[pos] < a[pos+1]  (positive difference)
+                long pref = 0;
+                for (int x = 1; x <= m; x++) {
+                    ndp[x] = pref;              // sum of dp[y] for y < x
+                    pref += dp[x];
+                    if (pref >= MOD) pref -= MOD;
+                }
+            } else {
+                // Need a[pos] > a[pos+1]  (negative difference)
+                long suff = 0;
+                for (int x = m; x >= 1; x--) {
+                    ndp[x] = suff;              // sum of dp[y] for y > x
+                    suff += dp[x];
+                    if (suff >= MOD) suff -= MOD;
+                }
+            }
+
+            dp = ndp;
+        }
+
+        // Total sequences with the pattern starting with '<' (a1 < a2)
+        long totalUp = 0;
+        for (int x = 1; x <= m; x++) {
+            totalUp += dp[x];
+            if (totalUp >= MOD) totalUp -= MOD;
+        }
+
+        // Multiply by 2 for the opposite starting pattern (a1 > a2)
+        // This is valid because n >= 3 and adjacent values are never equal.
+        return (int) ((2 * totalUp) % MOD);
+    }
+}
