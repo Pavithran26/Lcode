@@ -1,0 +1,90 @@
+import java.util.Arrays;
+
+class Solution {
+    private static final int MOD = 1_000_000_007;
+
+    public int zigZagArrays(int n, int l, int r) {
+        int m = r - l + 1;                  // number of distinct values
+
+        // Base matrix for a "< >" pair:
+        // M[i][j] = number of z such that i < z and z > j
+        long[][] base = new long[m][m];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < m; j++) {
+                int mx = Math.max(i, j);
+                if (mx < m - 1) {
+                    base[i][j] = (m - 1 - mx) % MOD;
+                }
+            }
+        }
+
+        long transitions = n - 1;           // number of adjacent comparisons
+        long pairs = transitions / 2;       // number of full "< >" blocks
+
+        // initial vector: one way to choose the first value
+        long[] vec = new long[m];
+        Arrays.fill(vec, 1);
+
+        // exponentiate base^pairs
+        long[][] mat = base;
+        long e = pairs;
+        while (e > 0) {
+            if ((e & 1L) == 1L) {
+                vec = matVec(mat, vec, m);
+            }
+            e >>= 1;
+            if (e > 0) {
+                mat = matMul(mat, mat, m);
+            }
+        }
+
+        long count;
+        if ((transitions & 1L) == 0) {
+            // even number of transitions: all blocks are complete
+            count = 0;
+            for (long v : vec) {
+                count = (count + v) % MOD;
+            }
+        } else {
+            // odd number: one final '<' transition remains
+            // after last value x, we can choose y > x
+            count = 0;
+            for (int x = 0; x < m; x++) {
+                count = (count + vec[x] * (m - 1 - x)) % MOD;
+            }
+        }
+
+        // multiply by 2 for the complementary starting direction ("> <")
+        return (int) ((2L * count) % MOD);
+    }
+
+    // matrix × vector
+    private long[] matVec(long[][] A, long[] v, int n) {
+        long[] res = new long[n];
+        for (int i = 0; i < n; i++) {
+            long sum = 0;
+            for (int j = 0; j < n; j++) {
+                if (A[i][j] == 0 || v[j] == 0) continue;
+                sum = (sum + A[i][j] * v[j]) % MOD;
+            }
+            res[i] = sum;
+        }
+        return res;
+    }
+
+    // matrix × matrix
+    private long[][] matMul(long[][] A, long[][] B, int n) {
+        long[][] C = new long[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int k = 0; k < n; k++) {
+                long aik = A[i][k];
+                if (aik == 0) continue;
+                for (int j = 0; j < n; j++) {
+                    if (B[k][j] == 0) continue;
+                    C[i][j] = (C[i][j] + aik * B[k][j]) % MOD;
+                }
+            }
+        }
+        return C;
+    }
+}
