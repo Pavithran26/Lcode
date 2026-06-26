@@ -1,0 +1,47 @@
+class Solution {
+    public long countMajoritySubarrays(int[] nums, int target) {
+        int n = nums.length;
+        int offset = n + 2;          // shift to make indices non-negative
+        int size = 2 * n + 5;        // enough for prefix sums in [-n, n]
+        int[] bit = new int[size + 1]; // Fenwick tree (1-indexed)
+
+        // Local Fenwick helper
+        class Fenwick {
+            void add(int idx, int val) {
+                while (idx <= size) {
+                    bit[idx] += val;
+                    idx += idx & -idx;
+                }
+            }
+            int query(int idx) {
+                int res = 0;
+                while (idx > 0) {
+                    res += bit[idx];
+                    idx -= idx & -idx;
+                }
+                return res;
+            }
+        }
+
+        Fenwick fw = new Fenwick();
+
+        // initial prefix sum (before any element) is 0
+        fw.add(offset, 1);
+
+        int pref = 0;
+        long ans = 0;
+
+        for (int x : nums) {
+            // +1 for target, -1 for others
+            pref += (x == target) ? 1 : -1;
+
+            // need previous prefix sum < pref
+            ans += fw.query(pref - 1 + offset);
+
+            // insert current prefix sum
+            fw.add(pref + offset, 1);
+        }
+
+        return ans;
+    }
+}
