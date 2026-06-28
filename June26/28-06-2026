@@ -1,0 +1,21 @@
+import java.util.Arrays;
+
+class Solution {
+    public int maximumElementAfterDecrementingAndRearranging(int[] arr) {
+        Arrays.sort(arr);
+        int n = arr.length;
+
+        // The first element must be 1; we can always decrease it.
+        arr[0] = 1;
+        int prev = 1;
+
+        for (int i = 1; i < n; i++) {
+            // We cannot increase arr[i], so it is capped by prev + 1.
+            int val = Math.min(arr[i], prev + 1);
+            arr[i] = val;
+            prev = val;
+        }
+
+        return arr[n - 1];
+    }
+}
