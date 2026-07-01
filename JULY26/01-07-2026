@@ -1,0 +1,79 @@
+class Solution {
+    public int maximumSafenessFactor(List<List<Integer>> grid) {
+        int n = grid.size();
+        int[][] dist = new int[n][n];
+        Queue<int[]> q = new LinkedList<>();
+        
+        // Initialize distances and queue with thieves
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid.get(i).get(j) == 1) {
+                    dist[i][j] = 0;
+                    q.offer(new int[]{i, j});
+                } else {
+                    dist[i][j] = -1; // unvisited
+                }
+            }
+        }
+        
+        // Multi‑source BFS
+        int[][] dirs = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+        while (!q.isEmpty()) {
+            int[] cur = q.poll();
+            int r = cur[0], c = cur[1];
+            for (int[] d : dirs) {
+                int nr = r + d[0], nc = c + d[1];
+                if (nr >= 0 && nr < n && nc >= 0 && nc < n && dist[nr][nc] == -1) {
+                    dist[nr][nc] = dist[r][c] + 1;
+                    q.offer(new int[]{nr, nc});
+                }
+            }
+        }
+        
+        // Find maximum distance in the grid
+        int maxDist = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                maxDist = Math.max(maxDist, dist[i][j]);
+            }
+        }
+        
+        // Binary search on safeness factor
+        int lo = 0, hi = maxDist;
+        while (lo < hi) {
+            int mid = (lo + hi + 1) / 2;
+            if (canReach(dist, n, mid)) {
+                lo = mid;
+            } else {
+                hi = mid - 1;
+            }
+        }
+        return lo;
+    }
+    
+    private boolean canReach(int[][] dist, int n, int minDist) {
+        if (dist[0][0] < minDist || dist[n-1][n-1] < minDist) return false;
+        
+        boolean[][] visited = new boolean[n][n];
+        Queue<int[]> q = new LinkedList<>();
+        q.offer(new int[]{0, 0});
+        visited[0][0] = true;
+        
+        int[][] dirs = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+        while (!q.isEmpty()) {
+            int[] cur = q.poll();
+            int r = cur[0], c = cur[1];
+            if (r == n-1 && c == n-1) return true;
+            
+            for (int[] d : dirs) {
+                int nr = r + d[0], nc = c + d[1];
+                if (nr >= 0 && nr < n && nc >= 0 && nc < n 
+                    && !visited[nr][nc] && dist[nr][nc] >= minDist) {
+                    visited[nr][nc] = true;
+                    q.offer(new int[]{nr, nc});
+                }
+            }
+        }
+        return false;
+    }
+}
