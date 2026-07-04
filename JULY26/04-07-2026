@@ -1,0 +1,27 @@
+from collections import deque
+from typing import List
+
+class Solution:
+    def minScore(self, n: int, roads: List[List[int]]) -> int:
+        # Build adjacency list
+        graph = [[] for _ in range(n + 1)]
+        for u, v, d in roads:
+            graph[u].append((v, d))
+            graph[v].append((u, d))
+        
+        # BFS from city 1 to visit its entire connected component
+        visited = [False] * (n + 1)
+        visited[1] = True
+        q = deque([1])
+        
+        min_distance = float('inf')
+        
+        while q:
+            u = q.popleft()
+            for v, d in graph[u]:
+                min_distance = min(min_distance, d)
+                if not visited[v]:
+                    visited[v] = True
+                    q.append(v)
+        
+        return min_distance
