@@ -1,0 +1,12 @@
+SELECT 
+    categories.category,
+    COALESCE(COUNT(a.account_id), 0) AS accounts_count
+FROM (
+    VALUES ('Low Salary'), ('Average Salary'), ('High Salary')
+) AS categories(category)
+LEFT JOIN Accounts a ON 
+    (categories.category = 'Low Salary' AND a.income < 20000) OR
+    (categories.category = 'Average Salary' AND a.income BETWEEN 20000 AND 50000) OR
+    (categories.category = 'High Salary' AND a.income > 50000)
+GROUP BY categories.category
+ORDER BY categories.category;  -- optional ordering
